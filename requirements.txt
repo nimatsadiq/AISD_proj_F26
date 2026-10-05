@@ -1,0 +1,20 @@
+# Core
+pandas==2.2.2
+numpy==1.26.4
+scipy==1.13.1
+
+# Modelling
+scikit-learn==1.5.1
+xgboost==2.1.1
+statsmodels==0.14.2
+
+# Interpretability
+shap==0.46.0
+
+# Visualisation
+matplotlib==3.9.2
+seaborn==0.13.2
+missingno==0.5.2
+
+# Notebook
+jupyter==1.0.0

@@ -1,0 +1,21 @@
+# Data: tracked by reference, not by value.
+# The raw WFP file is re-downloadable from the link in README.md.
+data/raw/*
+data/processed/*
+!data/**/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Notebook outputs that bloat diffs
+*.nbconvert.ipynb
