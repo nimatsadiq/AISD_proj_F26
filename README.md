@@ -212,10 +212,12 @@ shift is the structural break that makes rolling-window retraining necessary.
 ├── phase2_implementation/
 │   ├── notebooks/
 │   │   └── pipeline_execution.ipynb <- runs end to end
-│   └── Phase2_Final_Report.pdf      <- decision log, strategy vs reality
+│   ├── Phase2_Final_Report.pdf      <- decision log, strategy vs reality
+│   └── Feedback_Response.pdf        <- response to Phase 1 review
 ├── src/
 │   ├── transformers.py              <- custom scikit-learn transformers
 │   ├── pipeline_builder.py          <- ColumnTransformer + Pipelines
+│   ├── calibration.py               <- post-hoc probability calibration
 │   ├── figures.py                   <- the 8 required diagnostics
 │   └── eda_figures.py               <- the descriptive figures above
 └── figures/                         <- all figures, 300 DPI
@@ -248,6 +250,14 @@ download is needed. No GPU is required: the data is tabular and fits in memory.
 5. **Models** — regularised logistic regression (scaled) and gradient boosted
    trees (unscaled), against a seasonal persistence baseline.
 
+## Reports
+
+| Document | What it covers |
+|---|---|
+| [Phase 1 Strategy Report](phase1_strategy/Phase1_Strategy_Report.pdf) | Data audit, missingness mechanisms, imputation and outlier rules, encoding and scaling, split design and leakage architecture |
+| [Phase 2 Final Report](phase2_implementation/Phase2_Final_Report.pdf) | Decision log, five documented deviations, leakage verification |
+| [Feedback Response](phase2_implementation/Feedback_Response.pdf) | Response to Phase 1 review, including probability calibration |
+
 ## Results
 
 | Model | Threshold | Recall | Precision | PR-AUC | ROC-AUC | Precision@50 |
@@ -259,7 +269,15 @@ download is needed. No GPU is required: the data is tabular and fits in memory.
 Test base rate 0.127. Thresholds chosen on the validation split; test scored
 once. Recall target of 0.80 met; the 0.60 precision target is not jointly
 achievable at this base rate, so precision@50 is the honest operational figure.
-Full discussion in `Phase2_Final_Report.pdf`.
+
+Scores are **calibrated** post hoc (Platt scaling, fitted on validation only)
+before any threshold is chosen, because weighted loss inflates raw
+probabilities. Brier improves from 0.189 to 0.129 for the logistic model, while
+precision@50 and PR-AUC are unchanged, since calibration is monotonic.
+
+![Calibration](figures/fig6_1_calibration.png)
+
+Full discussion in `Phase2_Final_Report.pdf` and `Feedback_Response.pdf`.
 
 ## Status
 

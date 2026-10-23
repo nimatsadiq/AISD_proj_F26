@@ -319,3 +319,44 @@ def fig5_1_pca_scree(train, figdir="figures"):
     p = _out(figdir, "fig5_1_pca_scree_plot.png")
     fig.savefig(p); plt.close(fig)
     return p
+
+
+# ---------------------------------------------------------------- 6.1
+def fig6_1_calibration(y_true, p_raw, p_cal, figdir="figures", n_bins=10):
+    """Reliability curve before and after post-hoc calibration.
+
+    Weighted loss inflates predicted scores, so an uncalibrated curve sits
+    below the diagonal: the model says 0.6 where the observed rate is 0.3.
+    Calibration is monotonic, so ranking and precision@k are unchanged; what
+    changes is whether a displayed probability means anything.
+    """
+    from sklearn.calibration import calibration_curve
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.6))
+
+    ax1.plot([0, 1], [0, 1], color=MUTED, lw=1.2, ls="--", label="perfect")
+    for p, label, colour in [(p_raw, "Raw (weighted loss)", PRIMARY),
+                             (p_cal, "Calibrated", SECONDARY)]:
+        obs, pred = calibration_curve(y_true, p, n_bins=n_bins, strategy="quantile")
+        ax1.plot(pred, obs, marker="o", markersize=5, lw=2, color=colour, label=label)
+    ax1.set_xlabel("Mean predicted probability")
+    ax1.set_ylabel("Observed spike rate")
+    ax1.set_title("Reliability curve")
+    ax1.legend(frameon=False, fontsize=8)
+    ax1.grid(alpha=0.45)
+
+    ax2.hist(p_raw, bins=28, alpha=0.6, color=PRIMARY, label="Raw", edgecolor="white", linewidth=0.4)
+    ax2.hist(p_cal, bins=28, alpha=0.6, color=SECONDARY, label="Calibrated", edgecolor="white", linewidth=0.4)
+    ax2.axvline(np.mean(y_true), color=INK, lw=1.6, ls="--",
+                label=f"base rate {np.mean(y_true):.3f}")
+    ax2.set_xlabel("Predicted probability")
+    ax2.set_ylabel("Count")
+    ax2.set_title("Score distribution")
+    ax2.legend(frameon=False, fontsize=8)
+    ax2.grid(axis="y", alpha=0.45)
+
+    fig.suptitle("Figure 6.1  Probability calibration under weighted loss",
+                 y=1.02, fontsize=11, fontweight="bold")
+    p = _out(figdir, "fig6_1_calibration.png")
+    fig.savefig(p); plt.close(fig)
+    return p
