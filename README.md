@@ -130,34 +130,121 @@ would fabricate price histories that never occurred.
 
 ---
 
-## What the data looks like
+## What the data looks like, and what we decided
 
-### Coverage is concentrated, not national
+Each chart below is followed by the decision it led to. The decisions are the
+point; the charts are the evidence.
+
+---
+
+### 1. Most states stop reporting in 2023
 
 ![Records per state](figures/eda_1_rows_per_state.png)
 
-WFP collects prices where it operates. Borno (31,273 records) and Yobe (28,922)
-account for about 68% of the file and are the only states running to 2026.
-Adamawa continues to November 2025. **Eleven of fourteen states stop in January
-2023**, and Enugu, Kwara and most of the south never appear at all. This is why
-the project is scoped to the northeast and treats national coverage via NBS
-series as planned work rather than a claim.
+**What this shows.** WFP collects prices only where it runs operations. Borno
+and Yobe have the most records and are the only states still reporting into
+2026. Adamawa stops in November 2025. **Eleven of the fourteen states stop in
+January 2023**, and most of southern Nigeria never appears at all.
 
-### The usable history is shorter than the date range suggests
+**Decision 1: use only Borno, Yobe and Adamawa.**
+
+The other eleven states have no data after January 2023. We are predicting next
+month's prices, so a state that stopped reporting three years ago cannot be
+predicted for and cannot be tested on. Keeping them would add rows to the
+training set that teach the model about a period we no longer care about, while
+giving nothing to test against.
+
+**Decision 2: keep Adamawa, even though its bar looks tiny.**
+
+The bar chart makes Adamawa look like 3% of the data. That is misleading, and
+here is why.
+
+The bar counts **rows**, and one row is one market. Borno has 28 markets, Yobe
+18, Adamawa only 7. But our model does not predict for individual markets. It
+predicts for a **whole state**, so we combine all the markets in a state into
+one number per food per month.
+
+Once we do that, Borno's 28 markets become one value, exactly like Adamawa's 7.
+The gap closes dramatically:
+
+| State | Share of raw rows | Share of modelling rows | Foods tracked |
+|---|---|---|---|
+| Borno | 49.8% | 44.8% | 36 |
+| Yobe | 47.2% | 43.1% | 36 |
+| Adamawa | **2.9%** | **12.1%** | 35 |
+
+Adamawa goes from 3% to 12%. It was never short of information. It was short of
+**markets**, which is a different thing. It tracks almost the same list of foods
+as the other two.
+
+**Is the model unfair to the smaller state?** We checked, and no. On the test
+data the model catches 83.3% of spikes in Borno and 83.0% in Yobe. Nearly
+identical, so having more rows from Borno does not make the model better at
+Borno.
+
+**What we will say honestly.** Adamawa's real problem is not size, it is timing.
+Because its data stops in November 2025, it contributes only 25 rows to the test
+period, containing 2 spikes. You cannot measure anything reliably from 2 events.
+So we keep Adamawa for training, where it adds a third region outside the
+Borno-Yobe conflict area, and we report its test scores separately with a note
+that they are not meaningful.
+
+---
+
+### 2. The early years are almost empty
 
 ![Records per year](figures/eda_2_records_per_year.png)
 
-The file spans January 2002 to July 2026, but records before 2014 are sparse.
-"Back to 2002" is technically true and misleading, so the modelling period
-starts in 2016.
+**What this shows.** The file says it covers 2002 to 2026. But look at the bars
+before 2014: they are almost invisible. The real data starts around 2014 and
+becomes dense from 2016.
 
-### Observed months per series
+**Decision 3: start the modelling period at January 2016.**
+
+Three reasons, in order of how much they matter.
+
+First, **those old rows cannot produce anything usable anyway.** Our model looks
+backwards: to make a prediction for a given month it needs the previous 12
+months of that food in that state. A handful of scattered records from 2008 has
+no 12-month history behind it, so no row can be built from it. Those records
+were never going to enter the model.
+
+Second, **it was a different economy.** Before 2016 the naira was pegged and
+fuel was subsidised. Prices behaved by different rules. Teaching the model those
+rules would teach it something that is no longer true.
+
+Third, it is cheap. Cutting everything before 2016 removes only **7.9% of the
+file**.
+
+**Does this change the first chart?** Barely, which is worth knowing. After the
+2016 cut, Borno and Yobe go from 68% to 72% of records. The ranking of states
+does not change. So the two decisions are independent: we are not cutting years
+in order to fix the state balance, and cutting years does not undo the state
+decision.
+
+---
+
+### 3. How long each food has been tracked
 
 ![Coverage grid](figures/eda_6_coverage_grid.png)
 
-107 state-commodity series across a possible 127 months.
+**What this shows.** Each square is one food in one state. The number inside is
+**how many months that food was recorded**, out of a possible 127. Darker means
+more months. This is not how many prices were collected in a single month; it is
+how long the record runs.
 
-### Spikes cluster strongly by year
+**Decision 4: set a minimum length before a food can enter the model.**
+
+A food recorded for only 20 of 127 months cannot support a 12-month lookback.
+It would contribute almost no usable rows while still adding another category
+for the model to learn. Short series are better left out than half-used.
+
+This is a **data decision that creates a model decision**: once we fix the
+minimum length, the list of foods changes, which changes the feature set.
+
+---
+
+### 4. Some years are far worse than others
 
 ![Spikes by year](figures/eda_3_spikes_by_year.png)
 
@@ -170,30 +257,133 @@ starts in 2016.
 | 2020 | 26.0% | 2026 | 24.3% |
 | 2021 | 17.7% | | |
 
-2024 is the worst year in the series at 37.1%, and 2019 the calmest at 5.8%.
-The jump from 2022 to 2023-24 coincides with fuel subsidy removal and the
-currency float.
+**What this shows.** 2024 was the worst year, with 37% of months spiking. 2019
+was the calmest at under 6%. That is a six-fold difference between years.
 
-### And by calendar month
+**What happened in 2024, and can a model learn it?**
+
+First we checked whether it was one bad crop or something general. In 2024
+**every single food** spiked, in all three states, at between 36% and 42%. A
+crop failure hits some foods. This hit everything.
+
+The cause is visible in your own file. If you divide the naira price by the
+dollar price, you recover the exchange rate WFP used:
+
+| Year | Naira per US dollar |
+|---|---|
+| 2022 | 415 |
+| 2023 | 759 |
+| 2024 | **1,575** |
+
+The naira lost almost three quarters of its value in two years. This followed
+the removal of the fuel subsidy and the floating of the currency in mid-2023.
+
+**So this is not a statistical pattern. It is a government policy decision.**
+Nothing in the history of food prices could have predicted it, because the cause
+was not in food prices. It was in a policy announcement.
+
+**Decision 5: three things, none of which pretend the model can predict policy.**
+
+1. **Add the exchange rate as an input.** We cannot predict the devaluation, but
+   once it is happening, the model can see it instead of being confused by it.
+2. **Add a marker for "after July 2023".** This lets the model treat the two
+   periods as different worlds rather than averaging them into one.
+3. **Retrain on a moving window.** Instead of training once on all history, keep
+   retraining on recent months so the model follows the current regime.
+
+This same event explains something in our results: our validation period has a
+34.9% spike rate while training has 16.3% and testing has 12.7%. That is not a
+mistake in the split. It is 2024 showing up.
+
+---
+
+### 5. June is the hungry month
 
 ![Spikes by month](figures/eda_4_spikes_by_month.png)
 
-Spike rate peaks in **June at 31.0%** and troughs in **October at 10.7%**, a
-three-fold swing. June sits at the end of the lean season before the main
-harvest; October follows it. Perishables and storables diverge after the
-harvest: storables fall to 8% by October while perishables stay near 16% and
-climb again into November and December. This is the seasonal structure the
-model's cyclical month encoding is designed to capture, and the evidence that
-splitting by `food_type` is justified.
+**What this shows.** Spikes peak in **June (31%)** and bottom out in **October
+(10.7%)**. Three times as likely in June as in October.
 
-### Prices themselves
+**Why June?** June is the end of the **lean season**. Last year's harvest has
+been eaten or sold, the new harvest is still months away, and it is the middle
+of the rainy season, so roads are bad and moving food costs more. By October the
+harvest has arrived and prices settle.
+
+We checked it is not one strange food: 35 of 36 foods spiked in June, in all
+three states.
+
+**But here is the catch, and it is important.** June is not reliably bad. Look
+at June on its own, year by year:
+
+| Year | June spike rate |
+|---|---|
+| 2019 | 5.8% |
+| **2022** | **2.2%** |
+| 2023 | 50.0% |
+| **2024** | **64.0%** |
+
+June beat its own year's average in 8 of 11 years, so the pattern is real. But
+2.2% in one June and 64% in another means **knowing it is June tells you very
+little by itself.**
+
+This is exactly why our simple comparison rule fails. A rule that says "warn
+every June, because June is usually bad" catches only 4.3% of real spikes. It
+sounds sensible and does almost nothing.
+
+**Decision 6: keep the month as an input, but make it work together with the
+other inputs.**
+
+We already encode the month in a way that knows December and January are next to
+each other, not eleven months apart. The next step is to let the model combine
+June **with** fuel costs, the exchange rate and recent price movement, so it can
+tell a calm June from a dangerous one. June alone is a weak clue. June during a
+currency collapse is a strong one.
+
+The chart also shows perishables and storables separating after harvest:
+storables drop to 8% by October while perishables stay near 16%. That is
+independent evidence that splitting foods into those two groups is worth doing,
+which supports a choice we had already made.
+
+---
+
+### 6. The prices themselves
 
 ![Price series](figures/eda_5_price_series.png)
 
-Four staples in Borno, with spike months marked and July 2023 dashed. Local
-rice roughly triples after mid-2023. Tomatoes swing violently throughout,
-consistent with their 32% spike rate against 6% for imported rice. This level
-shift is the structural break that makes rolling-window retraining necessary.
+**What this shows.** Four staple foods in Borno. The blue line is the price. Red
+dots mark months where a spike followed. The dashed line is July 2023.
+
+**Why include this chart at all?** Every other chart shows a summary. This one
+shows the actual thing we are predicting, and it does four jobs at once.
+
+1. **It proves our definition of "spike" is sensible.** The red dots sit on real
+   climbs, not on random wobbles. Anyone can look and judge whether our 15% rule
+   is picking out the right months.
+2. **It makes the 2023 break visible.** Local rice roughly triples after the
+   dashed line. You can see in one glance why a model trained on 2016 to 2022
+   would struggle with 2024.
+3. **It shows the foods behave differently.** Tomatoes jump around wildly at low
+   prices; palm oil climbs smoothly. That is the perishable versus storable
+   difference, visible in raw data rather than just claimed.
+4. **It shows the gaps.** Where the line breaks, that month has no data.
+
+**Decision 7: no new decision, but this is the chart that justifies several
+others.** It is the only figure a non-technical reader can understand without
+help, which is why it is worth keeping.
+
+---
+
+## Summary of decisions
+
+| # | Decision | Driven by |
+|---|---|---|
+| 1 | Use only Borno, Yobe and Adamawa | Chart 1: eleven states stop in Jan 2023 |
+| 2 | Keep Adamawa despite its small bar | Chart 1: row count measures markets, not information |
+| 3 | Start the modelling period at January 2016 | Chart 2: earlier rows cannot form features |
+| 4 | Require a minimum series length | Chart 3: short series cannot support a 12-month lookback |
+| 5 | Add exchange rate, regime marker, rolling retraining | Chart 4: 2024 was a policy shock, not a price pattern |
+| 6 | Keep month as an input, combined with other features | Chart 5: June is a real but weak signal on its own |
+| 7 | Report Adamawa's test scores separately | Chart 1: only 25 test rows and 2 spikes |
 
 ---
 
