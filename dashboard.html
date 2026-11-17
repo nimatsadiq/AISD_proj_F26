@@ -1,0 +1,458 @@
+<title>Spike Watch</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: one hero risk, then the watchlist, then the record. Crop colour carries it. */
+:root{
+  color-scheme:light;
+  --ground:#fbfcf7; --panel:#ffffff; --edge:#e0e8d4; --raise:#f1f6e8;
+  --ink:#1a2417; --ink-2:#51604a; --ink-3:#8a997f;
+  --accent:#3d6b33; --accent-2:#5d9a4a;
+  --soil:#8a6a44;
+  --high:#c2410c; --mid:#b08500; --low:#4a8a3c;
+  --hit:#2f6b4f; --miss:#9aa392;
+  --font-display:'Archivo','Helvetica Neue',sans-serif;
+  --font-body:'Inter',system-ui,sans-serif;
+  --font-num:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--font-body);
+  margin:0;line-height:1.5;-webkit-font-smoothing:antialiased}
+
+/* ---- masthead: soil band, green field ---- */
+.top{background:linear-gradient(165deg,#2f5729 0%,#3d6b33 55%,#4b7d3a 100%);
+  border-bottom:5px solid var(--soil);position:relative;overflow:hidden}
+.top::after{content:"";position:absolute;inset:auto -10% -40% -10%;height:70%;
+  background:radial-gradient(ellipse at 50% 0,rgba(255,255,255,.14),transparent 70%)}
+.top .wrap{padding-block:30px 26px;position:relative;z-index:1}
+h1{font-family:var(--font-display);font-size:clamp(1.9rem,5.4vw,2.9rem);
+  font-weight:800;margin:0 0 7px;letter-spacing:-.03em;color:#fff;text-wrap:balance}
+.sub{color:#d8e8cf;max-width:60ch;margin:0;font-size:.95rem}
+
+.wrap{max-width:1080px;margin:0 auto;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px))}
+.main{padding-block:24px 56px}
+
+/* ---- controls ---- */
+.controls{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;margin-bottom:20px}
+.fld{display:flex;flex-direction:column;gap:6px;min-width:0}
+label{font-size:.69rem;text-transform:uppercase;letter-spacing:.09em;
+  color:var(--ink-3);font-weight:700}
+select,input[type=range]{font-family:var(--font-body);font-size:.92rem;
+  background:var(--panel);color:var(--ink);border:1px solid var(--edge);
+  border-radius:8px;padding:8px 11px;accent-color:var(--accent)}
+input[type=range]{padding:0;width:180px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---- hero ---- */
+.hero{position:relative;overflow:hidden;border-radius:16px;margin-bottom:12px;
+  background:var(--panel);border:1px solid var(--edge);
+  box-shadow:0 6px 22px rgba(40,60,25,.08);
+  display:grid;grid-template-columns:auto 1fr auto;gap:24px;align-items:center;
+  padding:26px 28px}
+.hero::before{content:"";position:absolute;inset:0;
+  background:radial-gradient(circle at 12% 50%,var(--crop,#999) 0,transparent 62%);
+  opacity:.17;pointer-events:none}
+.hero>*{position:relative;z-index:1}
+.hero .eyebrow{font-size:.67rem;text-transform:uppercase;letter-spacing:.13em;
+  font-weight:700;color:var(--ink-3);margin-bottom:5px}
+.hero .big{font-family:var(--font-display);font-size:clamp(1.5rem,4.2vw,2.1rem);
+  font-weight:700;letter-spacing:-.025em;line-height:1.12;margin-bottom:3px}
+.hero .where{color:var(--ink-2);font-size:.95rem;margin-bottom:12px}
+.hero .ic{width:96px;height:96px;border-radius:20px;background:var(--raise);
+  border:1px solid color-mix(in oklab,var(--soil) 26%,transparent);
+  display:grid;place-items:center;flex:none}
+.hero .ic svg{width:62px;height:62px;color:var(--crop,var(--ink-2))}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:.75rem;background:var(--raise);color:var(--ink-2);
+  border:1px solid var(--edge);border-radius:99px;padding:3px 11px;font-weight:500}
+
+/* ---- ring gauge ---- */
+.gauge{position:relative;width:118px;height:118px;flex:none}
+.gauge svg{display:block;width:100%;height:100%;transform:rotate(-90deg)}
+.gauge .trk{stroke:var(--edge)}
+.gauge .val{stroke:var(--sev,var(--low));stroke-linecap:round;
+  transition:stroke-dashoffset .6s cubic-bezier(.3,.9,.3,1)}
+.gauge .lbl{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center}
+.gauge .n{font-family:var(--font-num);font-size:1.6rem;font-weight:600;
+  color:var(--sev,var(--low));font-variant-numeric:tabular-nums;line-height:1}
+.gauge .c{font-size:.6rem;text-transform:uppercase;letter-spacing:.09em;
+  color:var(--ink-3);font-weight:700;margin-top:3px}
+
+/* ---- watchlist rows ---- */
+.secthead{display:flex;align-items:baseline;gap:10px;margin:26px 0 10px}
+h2{font-family:var(--font-display);font-size:1.12rem;font-weight:700;
+  margin:0;letter-spacing:-.015em}
+.secthead .m{font-size:.82rem;color:var(--ink-3)}
+.list{display:flex;flex-direction:column;gap:7px}
+.w{position:relative;overflow:hidden;display:grid;
+  grid-template-columns:30px auto 1fr auto;gap:13px;align-items:center;
+  background:var(--panel);border:1px solid var(--edge);border-radius:11px;
+  padding:11px 15px;box-shadow:0 1px 2px rgba(40,60,25,.05)}
+.w::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;
+  background:var(--sev,var(--low))}
+.w::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,var(--crop,#999),transparent 42%);
+  opacity:.09;pointer-events:none}
+.w>*{position:relative;z-index:1}
+.ic-s{width:42px;height:42px;border-radius:10px;background:var(--raise);
+  border:1px solid color-mix(in oklab,var(--soil) 20%,transparent);
+  display:grid;place-items:center;flex:none}
+.ic-s svg{width:27px;height:27px;color:var(--crop,var(--ink-2))}
+.rk{font-family:var(--font-num);font-size:1rem;font-weight:600;
+  color:var(--ink-3);text-align:center;font-variant-numeric:tabular-nums}
+.body{min-width:0}
+.nm{font-family:var(--font-display);font-weight:600;font-size:1rem}
+.nm span{color:var(--ink-2);font-weight:500;font-size:.86rem}
+.why{color:var(--ink-2);font-size:.81rem;margin-top:2px}
+.right{display:flex;align-items:center;gap:11px}
+.minibar{width:54px;height:7px;border-radius:99px;background:var(--edge);
+  overflow:hidden;flex:none}
+.minibar i{display:block;height:100%;border-radius:99px;background:var(--sev,var(--low));
+  transition:width .5s ease}
+.pct{font-family:var(--font-num);font-size:1.12rem;font-weight:600;
+  color:var(--sev,var(--low));font-variant-numeric:tabular-nums;min-width:46px;
+  text-align:right}
+.tag{font-size:.63rem;text-transform:uppercase;letter-spacing:.07em;
+  font-weight:700;padding:3px 8px;border-radius:99px;white-space:nowrap}
+.tag.y{background:color-mix(in oklab,var(--hit) 16%,transparent);color:var(--hit)}
+.tag.n{background:color-mix(in oklab,var(--miss) 17%,transparent);color:var(--miss)}
+
+/* ---- stats ---- */
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(152px,1fr));
+  gap:10px;margin:26px 0 0}
+.cell{background:var(--panel);border:1px solid var(--edge);border-radius:12px;
+  padding:15px 17px;min-width:0;border-top:3px solid var(--soil)}
+.cell .k{font-size:.66rem;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--ink-3);font-weight:700}
+.cell .v{font-family:var(--font-num);font-size:1.75rem;font-weight:600;
+  margin-top:4px;font-variant-numeric:tabular-nums;color:var(--accent)}
+.cell .n{font-size:.74rem;color:var(--ink-2);margin-top:2px;line-height:1.35}
+
+.note{color:var(--ink-2);font-size:.86rem;margin:0 0 14px;max-width:64ch}
+.track{background:var(--panel);border:1px solid var(--edge);border-radius:12px;
+  padding:14px 16px;box-shadow:0 1px 2px rgba(40,60,25,.05);overflow-x:auto}
+.plot{position:relative;display:flex;align-items:flex-end;gap:5px;height:112px;
+  min-width:544px;padding-right:74px}
+.bar{flex:1 0 34px;display:flex;align-items:flex-end;height:100%}
+.fill{width:100%;background:linear-gradient(180deg,var(--accent-2),var(--accent));
+  border-radius:4px 4px 0 0;min-height:3px;transition:height .45s ease}
+.bar.on .fill{background:linear-gradient(180deg,#d9a03a,var(--soil))}
+.axis{display:flex;gap:5px;margin-top:8px;min-width:544px;padding-right:74px}
+.bl{flex:1 0 34px;text-align:center;font-size:.62rem;color:var(--ink-3);
+  font-family:var(--font-num)}
+.bl.on{color:var(--soil);font-weight:600}
+/* the line to beat: the share that would rise if you picked at random */
+.baseline{position:absolute;left:0;right:74px;bottom:calc(100% * var(--b,0));
+  border-top:1px dashed var(--soil);pointer-events:none}
+.baseline span{position:absolute;left:100%;top:-8px;padding-left:8px;
+  font-size:.61rem;color:var(--soil);font-weight:700;white-space:nowrap}
+.explain{margin-top:30px;max-width:780px;background:var(--panel);border:1px solid var(--edge);
+  border-radius:14px;padding:22px 24px;border-left:5px solid var(--soil)}
+.explain h2{margin-bottom:12px}
+.explain p{color:var(--ink-2);font-size:.9rem;max-width:64ch;margin:0 0 12px}
+.explain strong{color:var(--ink)}
+.tally{display:flex;gap:3px;flex-wrap:wrap;margin:14px 0 6px;max-width:430px}
+.dot{width:16px;height:16px;border-radius:4px;background:var(--edge)}
+.dot.flag{background:var(--mid)}
+.dot.spike{background:var(--high)}
+.key{display:flex;gap:16px;flex-wrap:wrap;font-size:.76rem;color:var(--ink-2);margin-bottom:16px}
+.key i{width:12px;height:12px;border-radius:3px;display:inline-block;
+  vertical-align:-2px;margin-right:6px}
+
+@media (max-width:720px){
+  .hero{grid-template-columns:auto 1fr;grid-template-areas:"ic gg" "tx tx";
+    gap:16px;padding:20px;align-items:center}
+  .hero .ic{grid-area:ic}
+  .hero .txt{grid-area:tx}
+  .gauge{grid-area:gg;justify-self:end;width:104px;height:104px}
+}
+@media (max-width:520px){
+  .w{grid-template-columns:auto 1fr;gap:11px}
+  .rk{display:none}
+  .right{grid-column:2;justify-content:space-between}
+  .hero .ic{width:72px;height:72px;border-radius:16px}
+  .hero .ic svg{width:46px;height:46px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-tomato" viewBox="0 0 24 24"><circle cx="12" cy="14" r="7.6" fill="currentColor"/><path d="M12 6.6c-1.1-1-2.6-1.3-3.9-.9.5 1.2 1.6 2 2.9 2.2M12 6.6c1.1-1 2.6-1.3 3.9-.9-.5 1.2-1.6 2-2.9 2.2M12 6.4v2" stroke="#4a7c3f" stroke-width="1.5" fill="none" stroke-linecap="round"/></symbol>
+<symbol id="i-onion" viewBox="0 0 24 24"><path d="M12 7c4 0 6.5 3.2 6.5 6.6S15.6 20 12 20s-6.5-2.9-6.5-6.4S8 7 12 7z" fill="currentColor"/><path d="M12 8.4v10.8M9 9.2c-1 2-1 6.4 0 9.4M15 9.2c1 2 1 6.4 0 9.4" stroke="#fff" stroke-opacity=".5" stroke-width="1.1" fill="none"/><path d="M12 7c-.6-1.4-.3-2.8.6-3.8.5 1.4.4 2.7-.1 3.8M12 7c.6-1.4.3-2.8-.6-3.8-.5 1.4-.4 2.7.1 3.8" fill="#7a9a5e"/></symbol>
+<symbol id="i-leaf" viewBox="0 0 24 24"><path d="M19 4c0 8-4.6 13-10.4 13C6 17 4.6 15.6 4.6 15.6S8 5.6 19 4z" fill="currentColor"/><path d="M16 6.5C11 9 7.6 13.2 5.6 19" stroke="#2d5a28" stroke-width="1.4" fill="none" stroke-linecap="round"/></symbol>
+<symbol id="i-banana" viewBox="0 0 24 24"><path d="M5.4 6.2c.3 7 4.6 12.2 11 12.6 1.6.1 2.6-.6 2.6-1.6 0-.8-.7-1.3-1.7-1.4-5-.5-8.3-4.3-8.8-9.8-.1-1-.6-1.6-1.5-1.6-.9 0-1.7.7-1.6 1.8z" fill="currentColor"/><path d="M5.2 5.8l-.9-1.6" stroke="#6b5a2a" stroke-width="1.6" stroke-linecap="round"/></symbol>
+<symbol id="i-orange" viewBox="0 0 24 24"><circle cx="12" cy="13.6" r="7.3" fill="currentColor"/><path d="M12 6.4c-.3-1.6.5-2.9 2-3.4.2 1.6-.5 2.8-1.6 3.4" fill="#5a8a3f"/><path d="M12 7.2v12.6M6 13.6h12M7.6 9.2l8.8 8.8M16.4 9.2l-8.8 8.8" stroke="#fff" stroke-opacity=".35" stroke-width=".9"/></symbol>
+<symbol id="i-melon" viewBox="0 0 24 24"><path d="M3 17.5A9 9 0 0 1 21 17.5z" fill="#3f7a35"/><path d="M4.8 17.5a7.2 7.2 0 0 1 14.4 0z" fill="#cfe3bd"/><path d="M6.3 17.5a5.7 5.7 0 0 1 11.4 0z" fill="currentColor"/><circle cx="10" cy="15" r=".8" fill="#2b2420"/><circle cx="14" cy="15" r=".8" fill="#2b2420"/><circle cx="12" cy="12.6" r=".8" fill="#2b2420"/></symbol>
+<symbol id="i-grain" viewBox="0 0 24 24"><path d="M12 21V9" stroke="#8a7445" stroke-width="1.6" stroke-linecap="round"/><g fill="currentColor"><ellipse cx="9.4" cy="8" rx="2.2" ry="3.1" transform="rotate(-24 9.4 8)"/><ellipse cx="14.6" cy="8" rx="2.2" ry="3.1" transform="rotate(24 14.6 8)"/><ellipse cx="9.4" cy="13" rx="2.2" ry="3" transform="rotate(-24 9.4 13)"/><ellipse cx="14.6" cy="13" rx="2.2" ry="3" transform="rotate(24 14.6 13)"/><ellipse cx="12" cy="5" rx="2.1" ry="3"/></g></symbol>
+<symbol id="i-rice" viewBox="0 0 24 24"><g fill="currentColor" stroke="#b5a179" stroke-width=".7"><ellipse cx="8" cy="9" rx="2" ry="3.4" transform="rotate(-30 8 9)"/><ellipse cx="15.4" cy="8.4" rx="2" ry="3.4" transform="rotate(26 15.4 8.4)"/><ellipse cx="11.6" cy="13.4" rx="2" ry="3.4" transform="rotate(-8 11.6 13.4)"/><ellipse cx="7.2" cy="16.6" rx="2" ry="3.4" transform="rotate(34 7.2 16.6)"/><ellipse cx="16.2" cy="16" rx="2" ry="3.4" transform="rotate(-30 16.2 16)"/></g></symbol>
+<symbol id="i-sack" viewBox="0 0 24 24"><path d="M7.6 8h8.8c.9 2.2 1.6 4.8 1.6 7.2 0 3-2.2 4.8-6 4.8s-6-1.8-6-4.8c0-2.4.7-5 1.6-7.2z" fill="currentColor"/><path d="M7.6 8c1-1 2.6-1.6 4.4-1.6S15.4 7 16.4 8c-1 .9-2.6 1.4-4.4 1.4S8.6 8.9 7.6 8z" fill="#fff" fill-opacity=".45"/><path d="M8.8 14.5h6.4M9.4 17h5.2" stroke="#8a7445" stroke-opacity=".5" stroke-width="1" stroke-linecap="round"/></symbol>
+<symbol id="i-yam" viewBox="0 0 24 24"><path d="M8.2 3.6c2.4-.8 4.4.4 5.6 3 1.4 3 3.4 5 4.4 7.4.9 2.2-.2 4.4-2.4 5.2-2.3.9-4.6-.3-5.6-2.6-1-2.3-2.8-4.2-3.9-6.6-1-2.4-.3-5.6 1.9-6.4z" fill="currentColor"/><path d="M9.6 7.6c.6 1 1.2 1.6 2 2M11.4 12c.7 1 1.5 1.7 2.4 2.1" stroke="#4a3a28" stroke-opacity=".55" stroke-width="1.1" stroke-linecap="round"/></symbol>
+<symbol id="i-beans" viewBox="0 0 24 24"><g fill="currentColor"><path d="M6.6 7.4c2.2-1 4.2 0 4.6 1.9.4 2-1 3.6-3.1 3.8-2 .2-3.4-1-3.4-2.6 0-1.4.7-2.5 1.9-3.1z"/><path d="M15.4 6.6c2.1-.6 3.7.7 3.7 2.5 0 1.9-1.6 3.2-3.6 3-1.9-.2-3-1.6-2.6-3.2.3-1.3 1.3-2 2.5-2.3z"/><path d="M11 14.4c2.3-.8 4.2.4 4.4 2.3.2 2-1.4 3.4-3.5 3.3-2-.1-3.3-1.4-3.1-3.1.1-1.2.9-2.1 2.2-2.5z"/></g></symbol>
+<symbol id="i-fish" viewBox="0 0 24 24"><path d="M3.4 12c2.4-3.6 6-5.4 9.2-5.4 3.4 0 6 1.9 7.6 5.4-1.6 3.5-4.2 5.4-7.6 5.4-3.2 0-6.8-1.8-9.2-5.4z" fill="currentColor"/><path d="M20.2 12c1.2-1 2-2.1 2.4-3.4-1.6.3-2.9 1-3.9 2M20.2 12c1.2 1 2 2.1 2.4 3.4-1.6-.3-2.9-1-3.9-2" fill="currentColor"/><circle cx="8.2" cy="10.9" r="1.1" fill="#1d2b33"/><path d="M12 7.4c-.8 2.9-.8 6.3 0 9.2" stroke="#1d2b33" stroke-opacity=".3" stroke-width="1.1" fill="none"/></symbol>
+<symbol id="i-meat" viewBox="0 0 24 24"><path d="M6.4 6c3-2 7.4-1.6 9.8 1 2.5 2.6 2.4 6.6-.2 9-2.6 2.4-6.8 2.3-9.2-.3-2.4-2.7-2.8-7.4-.4-9.7z" fill="currentColor"/><ellipse cx="11.4" cy="12.2" rx="3" ry="3.6" transform="rotate(16 11.4 12.2)" fill="#f0d9d2" fill-opacity=".75"/><path d="M17.6 6.4c1.6-.5 2.8.3 3 1.7.2 1.4-.8 2.5-2.2 2.4" fill="#efe6d8"/></symbol>
+<symbol id="i-egg" viewBox="0 0 24 24"><path d="M8.6 4.4c2.2-1.2 4.6.6 5.6 3.2 1 2.6.4 5.4-1.8 6.5-2.2 1.1-4.8-.2-5.8-2.8-1-2.6-.2-5.7 2-6.9z" fill="currentColor"/><path d="M14.4 11.4c2.1-.9 4.2.6 4.8 2.9.6 2.3-.6 4.5-2.8 5-2.2.5-4.3-1-4.8-3.3-.5-2.3.7-4 2.8-4.6z" fill="currentColor" fill-opacity=".82"/></symbol>
+<symbol id="i-bottle" viewBox="0 0 24 24"><path d="M10 2.8h4v3l2.4 3.2c.5.7.8 1.5.8 2.4v8c0 1-.8 1.8-1.8 1.8H8.6c-1 0-1.8-.8-1.8-1.8v-8c0-.9.3-1.7.8-2.4L10 5.8z" fill="#d9d2c4" fill-opacity=".45"/><path d="M7.2 13.2c0-.6.1-1.1.4-1.6h8.8c.3.5.4 1 .4 1.6v6.8c0 1-.8 1.8-1.8 1.8H9c-1 0-1.8-.8-1.8-1.8z" fill="currentColor"/><rect x="9.6" y="2" width="4.8" height="1.8" rx=".7" fill="#8a7445"/></symbol>
+<symbol id="i-milk" viewBox="0 0 24 24"><path d="M8 8.4h8v11.4c0 1-.8 1.8-1.8 1.8H9.8c-1 0-1.8-.8-1.8-1.8z" fill="currentColor"/><path d="M8 8.4L9.8 4.4h4.4L16 8.4z" fill="currentColor" fill-opacity=".72"/><path d="M9.8 4.4h4.4V2.6H9.8z" fill="#9aa8b5"/><path d="M9.8 12.4h4.4" stroke="#7d8d9c" stroke-opacity=".5" stroke-width="1.2" stroke-linecap="round"/></symbol>
+<symbol id="i-salt" viewBox="0 0 24 24"><path d="M8.4 9.4h7.2l1.4 9.4c.2 1.4-.8 2.6-2.2 2.6H9.2c-1.4 0-2.4-1.2-2.2-2.6z" fill="currentColor"/><path d="M8.4 9.4c0-2 1.6-3.6 3.6-3.6s3.6 1.6 3.6 3.6z" fill="#b8c0c7"/><circle cx="10.8" cy="7.4" r=".6" fill="#6b747c"/><circle cx="13.2" cy="7.4" r=".6" fill="#6b747c"/><circle cx="12" cy="6.2" r=".6" fill="#6b747c"/></symbol>
+</defs></svg>
+
+<header class="top">
+  <div class="wrap">
+    <h1>Spike Watch</h1>
+    <p class="sub">Every month, for each staple food in Borno, Yobe and Adamawa, this
+    estimates the chance its price rises more than 15% above its recent trend next
+    month. It hands over a short ranked list, not an alarm.</p>
+  </div>
+</header>
+
+<main class="wrap main">
+
+  <div class="controls">
+    <div class="fld">
+      <label for="mo">Month</label>
+      <select id="mo"></select>
+    </div>
+    <div class="fld">
+      <label for="k">Foods to watch: <span id="kv">5</span></label>
+      <input type="range" id="k" min="3" max="8" value="5">
+    </div>
+  </div>
+
+  <section class="hero" id="hero" aria-live="polite"></section>
+
+  <div class="secthead">
+    <h2>Also watching</h2>
+    <span class="m" id="alsoN"></span>
+  </div>
+  <div class="list" id="list"></div>
+
+  <div class="strip">
+    <div class="cell"><div class="k">Months tracked</div><div class="v" id="s-mo">—</div><div class="n">retrained every month</div></div>
+    <div class="cell"><div class="k">Shortlist accuracy</div><div class="v" id="s-acc">—</div><div class="n">of the foods we named, this share rose</div></div>
+    <div class="cell"><div class="k">Background rate</div><div class="v" id="s-base">—</div><div class="n">chance for any food picked at random</div></div>
+    <div class="cell"><div class="k">Lift</div><div class="v" id="s-lift">—</div><div class="n">better than guessing</div></div>
+  </div>
+
+  <div class="secthead"><h2>Track record</h2></div>
+  <p class="note">Share of each month's list that was followed by a real price rise. The
+  model was retrained every month on only what was known at that point, so nothing here
+  saw its own future. The dashed line is what you would get by picking foods at random; bars above it are months the shortlist beat guessing. The gold bar is the month you are viewing.</p>
+  <div class="track">
+    <div class="plot" id="plot"></div>
+    <div class="axis" id="axis"></div>
+  </div>
+
+  <section class="explain">
+    <h2>Why a short list instead of an alarm</h2>
+
+    <p>Each month there are about <strong><span data-n="pairs">50</span> things you could worry about</strong>: rice
+    in Borno, tomatoes in Yobe, onions in Adamawa, and so on. Of those <span data-n="pairs">50</span>, roughly
+    <strong><span data-n="spikes">7</span> will actually jump</strong> in price. The
+    other <span data-n="steady">43</span> will not. Nobody knows in advance which.</p>
+
+    <div class="tally" id="tally"></div>
+    <div class="key">
+      <span><i style="background:var(--high)"></i>will actually jump (<span data-n="spikes">7</span>)</span>
+      <span><i style="background:var(--edge)"></i>will stay steady (<span data-n="steady">43</span>)</span>
+    </div>
+
+    <p>We could set the system to catch nearly all of them. But to do that, it has to
+    point at <strong><span data-n="flagged">29</span> of the <span data-n="pairs">50</span></strong>. Handing someone <span data-n="flagged">29</span> names out of <span data-n="pairs">50</span> is the
+    same as telling them to watch the whole market, which is no help at all.</p>
+
+    <div class="tally" id="tally2"></div>
+    <div class="key">
+      <span><i style="background:var(--mid)"></i>flagged by an alarm (<span data-n="flagged">29</span> of <span data-n="pairs">50</span>)</span>
+    </div>
+
+    <p>It is the smoke alarm so sensitive it goes off when you make toast. It really does
+    catch every fire. It also gets unplugged by the end of the week.</p>
+
+    <p>So instead of flagging, we <strong>rank</strong>. All <span data-n="pairs">50</span> are sorted by how worried
+    the model is, and only the top few are shown. Of 5 shown, roughly 2 turn out to be
+    real. Some are missed. But 5 is a list a person can act on, and a food on that list
+    is about <strong>two and a half times</strong> as likely to rise as one picked at
+    random. That multiple is the Lift figure above, and it moves as you change the
+    length of the list: a shorter list is sharper, a longer one catches more.</p>
+
+    <p><strong>That is the trade:</strong> catch nearly everything and be ignored, or
+    catch less and be used. Drag the slider above to watch it move.</p>
+
+    <p><strong>What this cannot do.</strong> It does not say how large the rise will be,
+    and it cannot see a policy shock coming, such as a fuel subsidy being removed or the
+    naira being floated, because nothing in past prices announces those.</p>
+  </section>
+</main>
+
+<script>
+const FEED = {"meta":{"months":12,"pairs_scored":584,"spikes":82,"base_rate":0.1404,"train_window_months":48,"retrained":"monthly, on history only","precision_at_k":{"3":0.4444,"4":0.4167,"5":0.3667,"6":0.3472,"7":0.3333,"8":0.3125}},"warnings":[{"s":"Borno","c":"Onions","m":"2025-07","p":0.655,"r":["price rose last month","above its six-month trend","unusually volatile recently"],"a":1,"pairs_this_month":50},{"s":"Borno","c":"Tomatoes","m":"2025-07","p":0.631,"r":["above its six-month trend","price rose last month","neighbouring states rising"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Tomatoes","m":"2025-07","p":0.592,"r":["price rose last month","above its six-month trend","neighbouring states rising"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Bananas","m":"2025-07","p":0.563,"r":["unusually volatile recently","price rose last month","above its six-month trend"],"a":1,"pairs_this_month":50},{"s":"Borno","c":"Oranges","m":"2025-07","p":0.32,"r":["price rose last month","above its six-month trend","this month was bad last year"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Bananas","m":"2025-07","p":0.186,"r":["price rose last month","neighbouring states rising","price climbing over three months"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Salt","m":"2025-07","p":0.131,"r":["unusually volatile recently","above its six-month trend","fuel cost climbing"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Onions","m":"2025-07","p":0.131,"r":["neighbouring states rising","this month was bad last year","fuel cost climbing"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Fish","m":"2025-08","p":0.512,"r":["price rose last month","above its six-month trend","neighbouring states rising"],"a":1,"pairs_this_month":50},{"s":"Borno","c":"Watermelons","m":"2025-08","p":0.461,"r":["price rose last month","above its six-month trend","unusually volatile recently"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Fish","m":"2025-08","p":0.415,"r":["price rose last month","neighbouring states rising","this month was bad last year"],"a":1,"pairs_this_month":50},{"s":"Borno","c":"Onions","m":"2025-08","p":0.206,"r":["above its six-month trend","unusually volatile recently","seasonal timing"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Salt","m":"2025-08","p":0.18,"r":["unusually volatile recently","price climbing over three months","this month was bad last year"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Salt","m":"2025-08","p":0.166,"r":["above its six-month trend","unusually volatile recently","price rose last month"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Bananas","m":"2025-08","p":0.113,"r":["above its six-month trend","seasonal timing","fuel cost rose last month"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Bananas","m":"2025-08","p":0.09,"r":["price climbing over three months","price rose last month","seasonal timing"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Fish","m":"2025-09","p":0.315,"r":["price rose last month","above its six-month trend","neighbouring states rising"],"a":1,"pairs_this_month":50},{"s":"Yobe","c":"Fish","m":"2025-09","p":0.251,"r":["above its six-month trend","neighbouring states rising","price rose last month"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Salt","m":"2025-09","p":0.139,"r":["unusually volatile recently","price rose last month","above its six-month trend"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Spinach","m":"2025-09","p":0.059,"r":["this month was bad last year","unusually volatile recently","fuel cost rose last month"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Salt","m":"2025-09","p":0.056,"r":["unusually volatile recently","neighbouring states rising","this month was bad last year"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Oil (vegetable)","m":"2025-09","p":0.049,"r":["price rose last month","fuel cost rose last month","price climbing over three months"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Meat (goat)","m":"2025-09","p":0.046,"r":["fuel cost rose last month","price climbing over three months","this month was bad last year"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Meat (beef)","m":"2025-09","p":0.044,"r":["fuel cost rose last month","price climbing over three months","seasonal timing"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Bananas","m":"2025-10","p":0.352,"r":["price rose last month","unusually volatile recently","above its six-month trend"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Meat (goat)","m":"2025-10","p":0.298,"r":["neighbouring states rising","price rose last month","price climbing over three months"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Meat (goat)","m":"2025-10","p":0.251,"r":["neighbouring states rising","price climbing over three months","fuel cost rose last month"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Meat (beef)","m":"2025-10","p":0.165,"r":["neighbouring states rising","price rose last month","price climbing over three months"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Meat (beef)","m":"2025-10","p":0.12,"r":["neighbouring states rising","price climbing over three months","price rose last month"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Fish","m":"2025-10","p":0.114,"r":["above its six-month trend","unusually volatile recently","price rose last month"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Yam","m":"2025-10","p":0.112,"r":["neighbouring states rising","price climbing over three months","unusually volatile recently"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Oranges","m":"2025-10","p":0.093,"r":["price rose last month","price climbing over three months","unusually volatile recently"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Rice (imported)","m":"2025-11","p":0.252,"r":["price rose last month","unusually volatile recently","price climbing over three months"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Fish","m":"2025-11","p":0.202,"r":["price rose last month","above its six-month trend","unusually volatile recently"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Watermelons","m":"2025-11","p":0.12,"r":["price rose last month","unusually volatile recently","this month was bad last year"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Fish","m":"2025-11","p":0.1,"r":["above its six-month trend","neighbouring states rising","unusually volatile recently"],"a":1,"pairs_this_month":50},{"s":"Yobe","c":"Maize flour","m":"2025-11","p":0.077,"r":["price rose last month","above its six-month trend","this month was bad last year"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Spinach","m":"2025-11","p":0.063,"r":["price rose last month","price climbing over three months","unusually volatile recently"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Meat (beef)","m":"2025-11","p":0.058,"r":["this month was bad last year","neighbouring states rising","price climbing over three months"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Bananas","m":"2025-11","p":0.055,"r":["unusually volatile recently","price climbing over three months","neighbouring states rising"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Oil (palm)","m":"2025-12","p":0.324,"r":["price rose last month","above its six-month trend","this month was bad last year"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Fish","m":"2025-12","p":0.267,"r":["above its six-month trend","price rose last month","this month was bad last year"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Oil (vegetable)","m":"2025-12","p":0.141,"r":["price rose last month","neighbouring states rising","above its six-month trend"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Oil (vegetable)","m":"2025-12","p":0.13,"r":["price rose last month","neighbouring states rising","above its six-month trend"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Oil (palm)","m":"2025-12","p":0.119,"r":["neighbouring states rising","price rose last month","this month was bad last year"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Fish","m":"2025-12","p":0.105,"r":["this month was bad last year","neighbouring states rising","price climbing over three months"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Watermelons","m":"2025-12","p":0.072,"r":["unusually volatile recently","price climbing over three months","fuel cost rose last month"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Meat (beef)","m":"2025-12","p":0.052,"r":["price climbing over three months","fuel cost rose last month","seasonal timing"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Milk (powder)","m":"2026-01","p":0.868,"r":["price rose last month","unusually volatile recently","above its six-month trend"],"a":1,"pairs_this_month":50},{"s":"Yobe","c":"Milk (powder)","m":"2026-01","p":0.172,"r":["neighbouring states rising","fuel cost rose last month","seasonal timing"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Watermelons","m":"2026-01","p":0.109,"r":["above its six-month trend","price rose last month","unusually volatile recently"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Salt","m":"2026-01","p":0.05,"r":["price rose last month","price climbing over three months","fuel cost rose last month"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Spinach","m":"2026-01","p":0.048,"r":["this month was bad last year","price climbing over three months","fuel cost rose last month"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Fish","m":"2026-01","p":0.044,"r":["unusually volatile recently","fuel cost rose last month","seasonal timing"],"a":0,"pairs_this_month":50},{"s":"Yobe","c":"Eggs","m":"2026-01","p":0.043,"r":["price climbing over three months","fuel cost rose last month","seasonal timing"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Meat (goat)","m":"2026-01","p":0.042,"r":["price climbing over three months","seasonal timing","seasonal timing"],"a":0,"pairs_this_month":50},{"s":"Borno","c":"Beans (white)","m":"2026-02","p":0.214,"r":["price rose last month","neighbouring states rising","unusually volatile recently"],"a":1,"pairs_this_month":52},{"s":"Borno","c":"Beans (red)","m":"2026-02","p":0.163,"r":["price rose last month","neighbouring states rising","unusually volatile recently"],"a":1,"pairs_this_month":52},{"s":"Yobe","c":"Beans (red)","m":"2026-02","p":0.163,"r":["price rose last month","neighbouring states rising","above its six-month trend"],"a":1,"pairs_this_month":52},{"s":"Borno","c":"Cowpeas","m":"2026-02","p":0.153,"r":["price rose last month","above its six-month trend","neighbouring states rising"],"a":1,"pairs_this_month":52},{"s":"Yobe","c":"Beans (white)","m":"2026-02","p":0.143,"r":["price rose last month","neighbouring states rising","unusually volatile recently"],"a":1,"pairs_this_month":52},{"s":"Borno","c":"Milk (powder)","m":"2026-02","p":0.139,"r":["unusually volatile recently","above its six-month trend","fuel cost rose last month"],"a":1,"pairs_this_month":52},{"s":"Borno","c":"Oranges","m":"2026-02","p":0.13,"r":["price rose last month","above its six-month trend","fuel cost rose last month"],"a":1,"pairs_this_month":52},{"s":"Borno","c":"Rice (imported)","m":"2026-02","p":0.13,"r":["price rose last month","above its six-month trend","fuel cost rose last month"],"a":1,"pairs_this_month":52},{"s":"Yobe","c":"Beans (white)","m":"2026-03","p":0.203,"r":["price rose last month","above its six-month trend","seasonal timing"],"a":0,"pairs_this_month":52},{"s":"Borno","c":"Beans (white)","m":"2026-03","p":0.187,"r":["above its six-month trend","neighbouring states rising","price rose last month"],"a":1,"pairs_this_month":52},{"s":"Yobe","c":"Beans (red)","m":"2026-03","p":0.181,"r":["above its six-month trend","price rose last month","seasonal timing"],"a":1,"pairs_this_month":52},{"s":"Yobe","c":"Fish","m":"2026-03","p":0.149,"r":["price rose last month","above its six-month trend","seasonal timing"],"a":1,"pairs_this_month":52},{"s":"Borno","c":"Fish","m":"2026-03","p":0.141,"r":["seasonal timing","above its six-month trend","neighbouring states rising"],"a":1,"pairs_this_month":52},{"s":"Borno","c":"Milk (powder)","m":"2026-03","p":0.136,"r":["unusually volatile recently","above its six-month trend","seasonal timing"],"a":0,"pairs_this_month":52},{"s":"Borno","c":"Beans (red)","m":"2026-03","p":0.122,"r":["above its six-month trend","neighbouring states rising","seasonal timing"],"a":0,"pairs_this_month":52},{"s":"Yobe","c":"Oranges","m":"2026-03","p":0.12,"r":["seasonal timing","price rose last month","this month was bad last year"],"a":0,"pairs_this_month":52},{"s":"Borno","c":"Bananas","m":"2026-04","p":0.768,"r":["price rose last month","above its six-month trend","neighbouring states rising"],"a":1,"pairs_this_month":52},{"s":"Yobe","c":"Fish","m":"2026-04","p":0.759,"r":["price rose last month","above its six-month trend","neighbouring states rising"],"a":1,"pairs_this_month":52},{"s":"Borno","c":"Fish","m":"2026-04","p":0.577,"r":["neighbouring states rising","price rose last month","above its six-month trend"],"a":0,"pairs_this_month":52},{"s":"Borno","c":"Cowpeas","m":"2026-04","p":0.444,"r":["above its six-month trend","price rose last month","seasonal timing"],"a":0,"pairs_this_month":52},{"s":"Yobe","c":"Bananas","m":"2026-04","p":0.416,"r":["neighbouring states rising","price rose last month","seasonal timing"],"a":0,"pairs_this_month":52},{"s":"Borno","c":"Spinach","m":"2026-04","p":0.414,"r":["price rose last month","above its six-month trend","seasonal timing"],"a":1,"pairs_this_month":52},{"s":"Borno","c":"Maize flour","m":"2026-04","p":0.367,"r":["price rose last month","above its six-month trend","seasonal timing"],"a":1,"pairs_this_month":52},{"s":"Yobe","c":"Meat (goat)","m":"2026-04","p":0.361,"r":["price rose last month","above its six-month trend","seasonal timing"],"a":1,"pairs_this_month":52},{"s":"Borno","c":"Tomatoes","m":"2026-05","p":0.438,"r":["price rose last month","above its six-month trend","seasonal timing"],"a":1,"pairs_this_month":52},{"s":"Borno","c":"Bananas","m":"2026-05","p":0.429,"r":["above its six-month trend","price rose last month","seasonal timing"],"a":1,"pairs_this_month":52},{"s":"Borno","c":"Milk (powder)","m":"2026-05","p":0.372,"r":["unusually volatile recently","above its six-month trend","price rose last month"],"a":0,"pairs_this_month":52},{"s":"Borno","c":"Oranges","m":"2026-05","p":0.365,"r":["price rose last month","above its six-month trend","seasonal timing"],"a":0,"pairs_this_month":52},{"s":"Borno","c":"Watermelons","m":"2026-05","p":0.344,"r":["price rose last month","above its six-month trend","seasonal timing"],"a":0,"pairs_this_month":52},{"s":"Yobe","c":"Tomatoes","m":"2026-05","p":0.273,"r":["neighbouring states rising","price rose last month","this month was bad last year"],"a":1,"pairs_this_month":52},{"s":"Borno","c":"Spinach","m":"2026-05","p":0.239,"r":["above its six-month trend","price rose last month","seasonal timing"],"a":1,"pairs_this_month":52},{"s":"Borno","c":"Yam","m":"2026-05","p":0.227,"r":["price rose last month","this month was bad last year","seasonal timing"],"a":0,"pairs_this_month":52},{"s":"Borno","c":"Spinach","m":"2026-06","p":0.687,"r":["above its six-month trend","price rose last month","neighbouring states rising"],"a":1,"pairs_this_month":26},{"s":"Borno","c":"Tomatoes","m":"2026-06","p":0.669,"r":["above its six-month trend","price rose last month","neighbouring states rising"],"a":1,"pairs_this_month":26},{"s":"Borno","c":"Onions","m":"2026-06","p":0.445,"r":["price rose last month","above its six-month trend","neighbouring states rising"],"a":0,"pairs_this_month":26},{"s":"Borno","c":"Bananas","m":"2026-06","p":0.303,"r":["above its six-month trend","fuel cost climbing","this month was bad last year"],"a":0,"pairs_this_month":26},{"s":"Borno","c":"Fish","m":"2026-06","p":0.302,"r":["above its six-month trend","price rose last month","neighbouring states rising"],"a":0,"pairs_this_month":26},{"s":"Borno","c":"Beans (white)","m":"2026-06","p":0.26,"r":["above its six-month trend","price rose last month","fuel cost climbing"],"a":0,"pairs_this_month":26},{"s":"Borno","c":"Rice (local)","m":"2026-06","p":0.233,"r":["above its six-month trend","price rose last month","fuel cost climbing"],"a":0,"pairs_this_month":26},{"s":"Borno","c":"Sorghum","m":"2026-06","p":0.233,"r":["price rose last month","neighbouring states rising","fuel cost climbing"],"a":0,"pairs_this_month":26}]};
+const W = FEED.warnings;
+const META = FEED.meta;
+
+/* icon + colour per staple, so the page reads as produce rather than rows */
+const CROP = {
+  "Tomatoes":["i-tomato","#c1352b"], "Onions":["i-onion","#9b6b9e"],
+  "Spinach":["i-leaf","#4a8a3c"], "Bananas":["i-banana","#d9b23c"],
+  "Oranges":["i-orange","#d97a28"], "Watermelons":["i-melon","#c33f42"],
+  "Sorghum":["i-grain","#c08a3e"], "Rice (local)":["i-rice","#c2a870"],
+  "Rice (imported)":["i-rice","#b89f72"], "Maize flour":["i-sack","#d4b05c"],
+  "Yam":["i-yam","#8a6a44"], "Beans (red)":["i-beans","#9e3f33"],
+  "Beans (white)":["i-beans","#bfae8e"], "Cowpeas":["i-beans","#b79a6a"],
+  "Fish":["i-fish","#5d8ca8"], "Meat (beef)":["i-meat","#a8463f"],
+  "Meat (goat)":["i-meat","#8d5a44"], "Eggs":["i-egg","#e0c67a"],
+  "Oil (palm)":["i-bottle","#c94f1e"], "Oil (vegetable)":["i-bottle","#d2a93a"],
+  "Milk (powder)":["i-milk","#cfc7b6"], "Salt":["i-salt","#aab4bd"]
+};
+const FALLBACK = ["i-sack", "#9b9082"];
+const RING = 2 * Math.PI * 48;
+
+const months = [...new Set(W.map(w => w.m))].sort();
+const fmt = m => new Date(m + "-02").toLocaleDateString("en-GB", {month:"long", year:"numeric"});
+const sev = p => p >= .55 ? "var(--high)" : p >= .35 ? "var(--mid)" : "var(--low)";
+const esc = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const topFor = (m, k) => W.filter(w => w.m === m).sort((a, b) => b.p - a.p).slice(0, k);
+
+const sel = document.getElementById("mo");
+months.slice().reverse().forEach(m => {
+  const o = document.createElement("option");
+  o.value = m; o.textContent = fmt(m); sel.appendChild(o);
+});
+const kIn = document.getElementById("k"), kv = document.getElementById("kv");
+
+/* Pairs in a typical month, taken from the feed rather than assumed: the most
+   recent month is always short because WFP publishes it incomplete. */
+const PAIRS = (() => {
+  const per = {};
+  W.forEach(w => { per[w.m] = w.pairs_this_month; });
+  const v = Object.values(per).sort((a, b) => a - b);
+  return v.length ? v[Math.floor(v.length / 2)] : 50;
+})();
+const SPIKES = Math.round(PAIRS * META.base_rate); /* how many of them rise */
+const FLAGGED = Math.round(PAIRS * 0.58);          /* what an 85%-recall alarm points at */
+
+function tallies(){
+  const a = document.getElementById("tally"), b = document.getElementById("tally2");
+  a.textContent = ""; b.textContent = "";
+  for (let i = 0; i < PAIRS; i++){
+    const d = document.createElement("div");
+    d.className = "dot" + (i < SPIKES ? " spike" : ""); a.appendChild(d);
+    const e = document.createElement("div");
+    e.className = "dot" + (i < FLAGGED ? " flag" : ""); b.appendChild(e);
+  }
+  document.querySelectorAll("[data-n=spikes]").forEach(el => el.textContent = SPIKES);
+  document.querySelectorAll("[data-n=steady]").forEach(el => el.textContent = PAIRS - SPIKES);
+  document.querySelectorAll("[data-n=pairs]").forEach(el => el.textContent = PAIRS);
+  document.querySelectorAll("[data-n=flagged]").forEach(el => el.textContent = FLAGGED);
+}
+
+function summary(k){
+  /* Accuracy and base rate come from the evaluation that produced the feed.
+     The base rate is counted over every pair scored, not over the shortlist:
+     the shortlist is the rows the model was most worried about, so dividing
+     one by the other would compare the model against itself. */
+  const acc = META.precision_at_k[String(k)];
+  const base = META.base_rate;
+  document.getElementById("s-mo").textContent = META.months;
+  document.getElementById("s-acc").textContent = acc == null ? "—" : Math.round(acc * 100) + "%";
+  document.getElementById("s-base").textContent = Math.round(base * 100) + "%";
+  document.getElementById("s-lift").textContent =
+    (acc == null || !base) ? "—" : (acc / base).toFixed(1) + "\u00d7";
+}
+
+/* the single most important fact of the month, given the weight it deserves */
+function hero(w, m){
+  const box = document.getElementById("hero");
+  if (!w){ box.innerHTML = '<div class="where">No data for this month.</div>'; return; }
+  const [sym, col] = CROP[w.c] || FALLBACK;
+  box.style.setProperty("--crop", col);
+  box.style.setProperty("--sev", sev(w.p));
+  box.innerHTML =
+    '<div class="ic"><svg aria-hidden="true"><use href="#' + sym + '"></use></svg></div>' +
+    '<div class="txt">' +
+      '<div class="eyebrow">Watch first · ' + esc(fmt(m)) + '</div>' +
+      '<div class="big">' + esc(w.c) + ' in ' + esc(w.s) + '</div>' +
+      '<div class="where">Most likely of ' + (w.pairs_this_month || PAIRS) + ' state-and-food pairs to rise sharply next month' +
+        (w.a === 1 ? ' · <span class="tag y">it did rise</span>'
+                   : w.a === 0 ? ' · <span class="tag n">it held</span>' : '') +
+      '</div>' +
+      '<div class="chips">' + w.r.map(r => '<span class="chip">' + esc(r) + '</span>').join("") + '</div>' +
+    '</div>' +
+    '<div class="gauge">' +
+      '<svg width="118" height="118" viewBox="0 0 118 118" aria-hidden="true">' +
+        '<circle class="trk" cx="59" cy="59" r="48" fill="none" stroke-width="11"/>' +
+        '<circle class="val" cx="59" cy="59" r="48" fill="none" stroke-width="11" ' +
+          'stroke-dasharray="' + RING.toFixed(1) + '" stroke-dashoffset="' + RING.toFixed(1) + '"/>' +
+      '</svg>' +
+      '<div class="lbl"><div class="n">' + Math.round(w.p * 100) + '%</div>' +
+      '<div class="c">chance</div></div>' +
+    '</div>';
+  const ring = box.querySelector(".val");
+  requestAnimationFrame(() => {
+    ring.setAttribute("stroke-dashoffset", (RING * (1 - w.p)).toFixed(1));
+  });
+}
+
+function render(){
+  const k = +kIn.value, m = sel.value;
+  kv.textContent = k;
+  const top = topFor(m, k);
+  hero(top[0], m);
+
+  const rest = top.slice(1);
+  document.getElementById("alsoN").textContent =
+    rest.length ? "next " + rest.length + " of " + (top[0].pairs_this_month || PAIRS) : "";
+  const list = document.getElementById("list");
+  list.textContent = "";
+  rest.forEach((w, i) => {
+    const [sym, col] = CROP[w.c] || FALLBACK;
+    const el = document.createElement("div");
+    el.className = "w";
+    el.style.setProperty("--sev", sev(w.p));
+    el.style.setProperty("--crop", col);
+    el.innerHTML =
+      '<div class="rk">' + (i + 2) + '</div>' +
+      '<div class="ic-s"><svg aria-hidden="true"><use href="#' + sym + '"></use></svg></div>' +
+      '<div class="body"><div class="nm">' + esc(w.c) + ' <span>· ' + esc(w.s) + '</span></div>' +
+      '<div class="why">' + esc(w.r.join(" · ")) + '</div></div>' +
+      '<div class="right">' +
+        '<div class="minibar"><i style="width:' + Math.round(w.p * 100) + '%"></i></div>' +
+        '<div class="pct">' + Math.round(w.p * 100) + '%</div>' +
+        (w.a === 1 ? '<span class="tag y">rose</span>' : '<span class="tag n">held</span>') +
+      '</div>';
+    list.appendChild(el);
+  });
+
+  const plot = document.getElementById("plot"), axis = document.getElementById("axis");
+  plot.textContent = ""; axis.textContent = "";
+  months.forEach(mm => {
+    const t = topFor(mm, k);
+    const rate = t.length ? t.filter(x => x.a).length / t.length : 0;
+    const bar = document.createElement("div");
+    bar.className = "bar" + (mm === m ? " on" : "");
+    const fill = document.createElement("div");
+    fill.className = "fill";
+    fill.style.height = Math.max(rate * 100, 2) + "%";
+    bar.title = fmt(mm) + ": " + Math.round(rate * 100) + "% of the list rose";
+    bar.appendChild(fill);
+    plot.appendChild(bar);
+    const lab = document.createElement("div");
+    lab.className = "bl" + (mm === m ? " on" : "");
+    lab.textContent = mm.slice(2).replace("-", "/");
+    axis.appendChild(lab);
+  });
+  const base = document.createElement("div");
+  base.className = "baseline";
+  base.style.setProperty("--b", META.base_rate);
+  base.innerHTML = '<span>' + Math.round(META.base_rate * 100) + '% by chance</span>';
+  plot.appendChild(base);
+
+  summary(k);
+}
+
+sel.addEventListener("change", render);
+kIn.addEventListener("input", render);
+tallies(); render();
+</script>
