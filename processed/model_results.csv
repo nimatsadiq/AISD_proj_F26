@@ -1,0 +1,4 @@
+model,threshold,recall,precision,PR-AUC,ROC-AUC,precision@50,Brier
+Logistic regression,0.38,0.835,0.207,0.356,0.738,0.46,0.187
+Gradient boosted trees,0.39,0.504,0.195,0.301,0.635,0.5,0.177
+Seasonal persistence baseline,,0.043,0.714,,,,

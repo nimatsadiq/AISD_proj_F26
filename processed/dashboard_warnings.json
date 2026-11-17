@@ -1,0 +1,1460 @@
+{
+ "meta": {
+  "months": 12,
+  "pairs_scored": 584,
+  "spikes": 82,
+  "base_rate": 0.1404,
+  "train_window_months": 48,
+  "retrained": "monthly, on history only",
+  "precision_at_k": {
+   "3": 0.4444,
+   "4": 0.3958,
+   "5": 0.3667,
+   "6": 0.3472,
+   "7": 0.3333,
+   "8": 0.3229
+  }
+ },
+ "warnings": [
+  {
+   "state": "Borno",
+   "commodity": "Onions",
+   "month": "2025-07",
+   "score": 0.671,
+   "reasons": [
+    "price rose last month",
+    "above its six-month trend",
+    "unusually volatile recently"
+   ],
+   "actual": 1,
+   "rank": 1,
+   "pairs_this_month": 50,
+   "spikes_this_month": 5
+  },
+  {
+   "state": "Borno",
+   "commodity": "Tomatoes",
+   "month": "2025-07",
+   "score": 0.644,
+   "reasons": [
+    "above its six-month trend",
+    "price rose last month",
+    "neighbouring states rising"
+   ],
+   "actual": 0,
+   "rank": 2,
+   "pairs_this_month": 50,
+   "spikes_this_month": 5
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Tomatoes",
+   "month": "2025-07",
+   "score": 0.563,
+   "reasons": [
+    "price rose last month",
+    "above its six-month trend",
+    "neighbouring states rising"
+   ],
+   "actual": 0,
+   "rank": 3,
+   "pairs_this_month": 50,
+   "spikes_this_month": 5
+  },
+  {
+   "state": "Borno",
+   "commodity": "Bananas",
+   "month": "2025-07",
+   "score": 0.489,
+   "reasons": [
+    "unusually volatile recently",
+    "price rose last month",
+    "above its six-month trend"
+   ],
+   "actual": 1,
+   "rank": 4,
+   "pairs_this_month": 50,
+   "spikes_this_month": 5
+  },
+  {
+   "state": "Borno",
+   "commodity": "Oranges",
+   "month": "2025-07",
+   "score": 0.268,
+   "reasons": [
+    "price rose last month",
+    "above its six-month trend",
+    "unusually volatile recently"
+   ],
+   "actual": 0,
+   "rank": 5,
+   "pairs_this_month": 50,
+   "spikes_this_month": 5
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Bananas",
+   "month": "2025-07",
+   "score": 0.161,
+   "reasons": [
+    "price rose last month",
+    "neighbouring states rising",
+    "this month was bad last year"
+   ],
+   "actual": 0,
+   "rank": 6,
+   "pairs_this_month": 50,
+   "spikes_this_month": 5
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Spinach",
+   "month": "2025-07",
+   "score": 0.15,
+   "reasons": [
+    "this month was bad last year",
+    "neighbouring states rising",
+    "above its six-month trend"
+   ],
+   "actual": 0,
+   "rank": 7,
+   "pairs_this_month": 50,
+   "spikes_this_month": 5
+  },
+  {
+   "state": "Borno",
+   "commodity": "Salt",
+   "month": "2025-07",
+   "score": 0.134,
+   "reasons": [
+    "above its six-month trend",
+    "unusually volatile recently",
+    "well above this time last year"
+   ],
+   "actual": 0,
+   "rank": 8,
+   "pairs_this_month": 50,
+   "spikes_this_month": 5
+  },
+  {
+   "state": "Borno",
+   "commodity": "Watermelons",
+   "month": "2025-08",
+   "score": 0.574,
+   "reasons": [
+    "price rose last month",
+    "above its six-month trend",
+    "this month was bad last year"
+   ],
+   "actual": 0,
+   "rank": 1,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Borno",
+   "commodity": "Fish",
+   "month": "2025-08",
+   "score": 0.471,
+   "reasons": [
+    "price rose last month",
+    "neighbouring states rising",
+    "this month was bad last year"
+   ],
+   "actual": 1,
+   "rank": 2,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Fish",
+   "month": "2025-08",
+   "score": 0.443,
+   "reasons": [
+    "price rose last month",
+    "above its six-month trend",
+    "neighbouring states rising"
+   ],
+   "actual": 1,
+   "rank": 3,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Borno",
+   "commodity": "Onions",
+   "month": "2025-08",
+   "score": 0.215,
+   "reasons": [
+    "above its six-month trend",
+    "unusually volatile recently",
+    "seasonal timing"
+   ],
+   "actual": 0,
+   "rank": 4,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Borno",
+   "commodity": "Salt",
+   "month": "2025-08",
+   "score": 0.145,
+   "reasons": [
+    "above its six-month trend",
+    "unusually volatile recently",
+    "seasonal timing"
+   ],
+   "actual": 0,
+   "rank": 5,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Borno",
+   "commodity": "Bananas",
+   "month": "2025-08",
+   "score": 0.122,
+   "reasons": [
+    "above its six-month trend",
+    "seasonal timing",
+    "fuel cost rose last month"
+   ],
+   "actual": 0,
+   "rank": 6,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Salt",
+   "month": "2025-08",
+   "score": 0.118,
+   "reasons": [
+    "unusually volatile recently",
+    "price climbing over three months",
+    "this month was bad last year"
+   ],
+   "actual": 0,
+   "rank": 7,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Bananas",
+   "month": "2025-08",
+   "score": 0.079,
+   "reasons": [
+    "seasonal timing",
+    "price climbing over three months",
+    "fuel cost rose last month"
+   ],
+   "actual": 0,
+   "rank": 8,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Borno",
+   "commodity": "Fish",
+   "month": "2025-09",
+   "score": 0.253,
+   "reasons": [
+    "price rose last month",
+    "above its six-month trend",
+    "neighbouring states rising"
+   ],
+   "actual": 1,
+   "rank": 1,
+   "pairs_this_month": 50,
+   "spikes_this_month": 1
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Fish",
+   "month": "2025-09",
+   "score": 0.216,
+   "reasons": [
+    "above its six-month trend",
+    "neighbouring states rising",
+    "price rose last month"
+   ],
+   "actual": 0,
+   "rank": 2,
+   "pairs_this_month": 50,
+   "spikes_this_month": 1
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Salt",
+   "month": "2025-09",
+   "score": 0.103,
+   "reasons": [
+    "unusually volatile recently",
+    "price rose last month",
+    "above its six-month trend"
+   ],
+   "actual": 0,
+   "rank": 3,
+   "pairs_this_month": 50,
+   "spikes_this_month": 1
+  },
+  {
+   "state": "Borno",
+   "commodity": "Spinach",
+   "month": "2025-09",
+   "score": 0.06,
+   "reasons": [
+    "this month was bad last year",
+    "unusually volatile recently",
+    "fuel cost rose last month"
+   ],
+   "actual": 0,
+   "rank": 4,
+   "pairs_this_month": 50,
+   "spikes_this_month": 1
+  },
+  {
+   "state": "Borno",
+   "commodity": "Salt",
+   "month": "2025-09",
+   "score": 0.05,
+   "reasons": [
+    "unusually volatile recently",
+    "neighbouring states rising",
+    "this month was bad last year"
+   ],
+   "actual": 0,
+   "rank": 5,
+   "pairs_this_month": 50,
+   "spikes_this_month": 1
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Oil (vegetable)",
+   "month": "2025-09",
+   "score": 0.047,
+   "reasons": [
+    "price rose last month",
+    "fuel cost rose last month",
+    "seasonal timing"
+   ],
+   "actual": 0,
+   "rank": 6,
+   "pairs_this_month": 50,
+   "spikes_this_month": 1
+  },
+  {
+   "state": "Borno",
+   "commodity": "Meat (beef)",
+   "month": "2025-09",
+   "score": 0.046,
+   "reasons": [
+    "fuel cost rose last month",
+    "seasonal timing",
+    "fuel cost climbing"
+   ],
+   "actual": 0,
+   "rank": 7,
+   "pairs_this_month": 50,
+   "spikes_this_month": 1
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Meat (goat)",
+   "month": "2025-09",
+   "score": 0.046,
+   "reasons": [
+    "fuel cost rose last month",
+    "this month was bad last year",
+    "seasonal timing"
+   ],
+   "actual": 0,
+   "rank": 8,
+   "pairs_this_month": 50,
+   "spikes_this_month": 1
+  },
+  {
+   "state": "Borno",
+   "commodity": "Bananas",
+   "month": "2025-10",
+   "score": 0.302,
+   "reasons": [
+    "price rose last month",
+    "unusually volatile recently",
+    "above its six-month trend"
+   ],
+   "actual": 0,
+   "rank": 1,
+   "pairs_this_month": 50,
+   "spikes_this_month": 1
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Meat (goat)",
+   "month": "2025-10",
+   "score": 0.229,
+   "reasons": [
+    "neighbouring states rising",
+    "price rose last month",
+    "fuel cost rose last month"
+   ],
+   "actual": 0,
+   "rank": 2,
+   "pairs_this_month": 50,
+   "spikes_this_month": 1
+  },
+  {
+   "state": "Borno",
+   "commodity": "Meat (goat)",
+   "month": "2025-10",
+   "score": 0.195,
+   "reasons": [
+    "neighbouring states rising",
+    "fuel cost rose last month",
+    "price climbing over three months"
+   ],
+   "actual": 0,
+   "rank": 3,
+   "pairs_this_month": 50,
+   "spikes_this_month": 1
+  },
+  {
+   "state": "Borno",
+   "commodity": "Meat (beef)",
+   "month": "2025-10",
+   "score": 0.142,
+   "reasons": [
+    "neighbouring states rising",
+    "price rose last month",
+    "fuel cost rose last month"
+   ],
+   "actual": 0,
+   "rank": 4,
+   "pairs_this_month": 50,
+   "spikes_this_month": 1
+  },
+  {
+   "state": "Borno",
+   "commodity": "Fish",
+   "month": "2025-10",
+   "score": 0.118,
+   "reasons": [
+    "above its six-month trend",
+    "price rose last month",
+    "unusually volatile recently"
+   ],
+   "actual": 0,
+   "rank": 5,
+   "pairs_this_month": 50,
+   "spikes_this_month": 1
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Meat (beef)",
+   "month": "2025-10",
+   "score": 0.102,
+   "reasons": [
+    "neighbouring states rising",
+    "price rose last month",
+    "fuel cost rose last month"
+   ],
+   "actual": 0,
+   "rank": 6,
+   "pairs_this_month": 50,
+   "spikes_this_month": 1
+  },
+  {
+   "state": "Borno",
+   "commodity": "Yam",
+   "month": "2025-10",
+   "score": 0.093,
+   "reasons": [
+    "neighbouring states rising",
+    "this month was bad last year",
+    "unusually volatile recently"
+   ],
+   "actual": 0,
+   "rank": 7,
+   "pairs_this_month": 50,
+   "spikes_this_month": 1
+  },
+  {
+   "state": "Borno",
+   "commodity": "Oranges",
+   "month": "2025-10",
+   "score": 0.082,
+   "reasons": [
+    "price rose last month",
+    "unusually volatile recently",
+    "price climbing over three months"
+   ],
+   "actual": 0,
+   "rank": 8,
+   "pairs_this_month": 50,
+   "spikes_this_month": 1
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Rice (imported)",
+   "month": "2025-11",
+   "score": 0.199,
+   "reasons": [
+    "price rose last month",
+    "unusually volatile recently",
+    "price climbing over three months"
+   ],
+   "actual": 0,
+   "rank": 1,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Fish",
+   "month": "2025-11",
+   "score": 0.166,
+   "reasons": [
+    "price rose last month",
+    "above its six-month trend",
+    "unusually volatile recently"
+   ],
+   "actual": 0,
+   "rank": 2,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Watermelons",
+   "month": "2025-11",
+   "score": 0.117,
+   "reasons": [
+    "price rose last month",
+    "this month was bad last year",
+    "unusually volatile recently"
+   ],
+   "actual": 0,
+   "rank": 3,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Borno",
+   "commodity": "Fish",
+   "month": "2025-11",
+   "score": 0.095,
+   "reasons": [
+    "above its six-month trend",
+    "neighbouring states rising",
+    "unusually volatile recently"
+   ],
+   "actual": 1,
+   "rank": 4,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Maize flour",
+   "month": "2025-11",
+   "score": 0.071,
+   "reasons": [
+    "price rose last month",
+    "above its six-month trend",
+    "this month was bad last year"
+   ],
+   "actual": 0,
+   "rank": 5,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Borno",
+   "commodity": "Meat (beef)",
+   "month": "2025-11",
+   "score": 0.06,
+   "reasons": [
+    "this month was bad last year",
+    "neighbouring states rising",
+    "price climbing over three months"
+   ],
+   "actual": 0,
+   "rank": 6,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Borno",
+   "commodity": "Spinach",
+   "month": "2025-11",
+   "score": 0.055,
+   "reasons": [
+    "price rose last month",
+    "price climbing over three months",
+    "unusually volatile recently"
+   ],
+   "actual": 0,
+   "rank": 7,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Borno",
+   "commodity": "Meat (goat)",
+   "month": "2025-11",
+   "score": 0.05,
+   "reasons": [
+    "neighbouring states rising",
+    "this month was bad last year",
+    "price climbing over three months"
+   ],
+   "actual": 0,
+   "rank": 8,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Borno",
+   "commodity": "Oil (palm)",
+   "month": "2025-12",
+   "score": 0.325,
+   "reasons": [
+    "price rose last month",
+    "above its six-month trend",
+    "this month was bad last year"
+   ],
+   "actual": 0,
+   "rank": 1,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Borno",
+   "commodity": "Fish",
+   "month": "2025-12",
+   "score": 0.279,
+   "reasons": [
+    "above its six-month trend",
+    "price rose last month",
+    "this month was bad last year"
+   ],
+   "actual": 0,
+   "rank": 2,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Borno",
+   "commodity": "Oil (vegetable)",
+   "month": "2025-12",
+   "score": 0.134,
+   "reasons": [
+    "price rose last month",
+    "above its six-month trend",
+    "neighbouring states rising"
+   ],
+   "actual": 0,
+   "rank": 3,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Oil (vegetable)",
+   "month": "2025-12",
+   "score": 0.118,
+   "reasons": [
+    "price rose last month",
+    "neighbouring states rising",
+    "this month was bad last year"
+   ],
+   "actual": 0,
+   "rank": 4,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Oil (palm)",
+   "month": "2025-12",
+   "score": 0.107,
+   "reasons": [
+    "neighbouring states rising",
+    "price rose last month",
+    "this month was bad last year"
+   ],
+   "actual": 0,
+   "rank": 5,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Fish",
+   "month": "2025-12",
+   "score": 0.099,
+   "reasons": [
+    "this month was bad last year",
+    "neighbouring states rising",
+    "unusually volatile recently"
+   ],
+   "actual": 0,
+   "rank": 6,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Borno",
+   "commodity": "Watermelons",
+   "month": "2025-12",
+   "score": 0.069,
+   "reasons": [
+    "unusually volatile recently",
+    "price climbing over three months",
+    "price rose last month"
+   ],
+   "actual": 0,
+   "rank": 7,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Meat (beef)",
+   "month": "2025-12",
+   "score": 0.054,
+   "reasons": [
+    "price climbing over three months",
+    "fuel cost rose last month",
+    "a recent month was estimated"
+   ],
+   "actual": 0,
+   "rank": 8,
+   "pairs_this_month": 50,
+   "spikes_this_month": 2
+  },
+  {
+   "state": "Borno",
+   "commodity": "Milk (powder)",
+   "month": "2026-01",
+   "score": 0.785,
+   "reasons": [
+    "price rose last month",
+    "unusually volatile recently",
+    "above its six-month trend"
+   ],
+   "actual": 1,
+   "rank": 1,
+   "pairs_this_month": 50,
+   "spikes_this_month": 11
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Milk (powder)",
+   "month": "2026-01",
+   "score": 0.134,
+   "reasons": [
+    "neighbouring states rising",
+    "fuel cost rose last month",
+    "seasonal timing"
+   ],
+   "actual": 0,
+   "rank": 2,
+   "pairs_this_month": 50,
+   "spikes_this_month": 11
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Watermelons",
+   "month": "2026-01",
+   "score": 0.105,
+   "reasons": [
+    "above its six-month trend",
+    "price rose last month",
+    "unusually volatile recently"
+   ],
+   "actual": 0,
+   "rank": 3,
+   "pairs_this_month": 50,
+   "spikes_this_month": 11
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Spinach",
+   "month": "2026-01",
+   "score": 0.053,
+   "reasons": [
+    "this month was bad last year",
+    "price climbing over three months",
+    "fuel cost rose last month"
+   ],
+   "actual": 0,
+   "rank": 4,
+   "pairs_this_month": 50,
+   "spikes_this_month": 11
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Salt",
+   "month": "2026-01",
+   "score": 0.05,
+   "reasons": [
+    "price rose last month",
+    "price climbing over three months",
+    "fuel cost rose last month"
+   ],
+   "actual": 0,
+   "rank": 5,
+   "pairs_this_month": 50,
+   "spikes_this_month": 11
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Fish",
+   "month": "2026-01",
+   "score": 0.046,
+   "reasons": [
+    "unusually volatile recently",
+    "fuel cost rose last month",
+    "seasonal timing"
+   ],
+   "actual": 0,
+   "rank": 6,
+   "pairs_this_month": 50,
+   "spikes_this_month": 11
+  },
+  {
+   "state": "Borno",
+   "commodity": "Meat (goat)",
+   "month": "2026-01",
+   "score": 0.045,
+   "reasons": [
+    "price climbing over three months",
+    "seasonal timing",
+    "seasonal timing"
+   ],
+   "actual": 0,
+   "rank": 7,
+   "pairs_this_month": 50,
+   "spikes_this_month": 11
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Eggs",
+   "month": "2026-01",
+   "score": 0.045,
+   "reasons": [
+    "price climbing over three months",
+    "fuel cost rose last month",
+    "seasonal timing"
+   ],
+   "actual": 0,
+   "rank": 8,
+   "pairs_this_month": 50,
+   "spikes_this_month": 11
+  },
+  {
+   "state": "Borno",
+   "commodity": "Beans (white)",
+   "month": "2026-02",
+   "score": 0.198,
+   "reasons": [
+    "price rose last month",
+    "neighbouring states rising",
+    "unusually volatile recently"
+   ],
+   "actual": 1,
+   "rank": 1,
+   "pairs_this_month": 52,
+   "spikes_this_month": 10
+  },
+  {
+   "state": "Borno",
+   "commodity": "Beans (red)",
+   "month": "2026-02",
+   "score": 0.153,
+   "reasons": [
+    "price rose last month",
+    "neighbouring states rising",
+    "above its six-month trend"
+   ],
+   "actual": 1,
+   "rank": 2,
+   "pairs_this_month": 52,
+   "spikes_this_month": 10
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Beans (red)",
+   "month": "2026-02",
+   "score": 0.151,
+   "reasons": [
+    "price rose last month",
+    "neighbouring states rising",
+    "above its six-month trend"
+   ],
+   "actual": 1,
+   "rank": 3,
+   "pairs_this_month": 52,
+   "spikes_this_month": 10
+  },
+  {
+   "state": "Borno",
+   "commodity": "Cowpeas",
+   "month": "2026-02",
+   "score": 0.147,
+   "reasons": [
+    "price rose last month",
+    "above its six-month trend",
+    "neighbouring states rising"
+   ],
+   "actual": 1,
+   "rank": 4,
+   "pairs_this_month": 52,
+   "spikes_this_month": 10
+  },
+  {
+   "state": "Borno",
+   "commodity": "Milk (powder)",
+   "month": "2026-02",
+   "score": 0.133,
+   "reasons": [
+    "unusually volatile recently",
+    "above its six-month trend",
+    "fuel cost rose last month"
+   ],
+   "actual": 1,
+   "rank": 5,
+   "pairs_this_month": 52,
+   "spikes_this_month": 10
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Beans (white)",
+   "month": "2026-02",
+   "score": 0.131,
+   "reasons": [
+    "price rose last month",
+    "neighbouring states rising",
+    "seasonal timing"
+   ],
+   "actual": 1,
+   "rank": 6,
+   "pairs_this_month": 52,
+   "spikes_this_month": 10
+  },
+  {
+   "state": "Borno",
+   "commodity": "Oranges",
+   "month": "2026-02",
+   "score": 0.128,
+   "reasons": [
+    "price rose last month",
+    "above its six-month trend",
+    "fuel cost rose last month"
+   ],
+   "actual": 1,
+   "rank": 7,
+   "pairs_this_month": 52,
+   "spikes_this_month": 10
+  },
+  {
+   "state": "Borno",
+   "commodity": "Rice (imported)",
+   "month": "2026-02",
+   "score": 0.128,
+   "reasons": [
+    "price rose last month",
+    "above its six-month trend",
+    "fuel cost rose last month"
+   ],
+   "actual": 1,
+   "rank": 8,
+   "pairs_this_month": 52,
+   "spikes_this_month": 10
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Beans (white)",
+   "month": "2026-03",
+   "score": 0.217,
+   "reasons": [
+    "price rose last month",
+    "above its six-month trend",
+    "seasonal timing"
+   ],
+   "actual": 0,
+   "rank": 1,
+   "pairs_this_month": 52,
+   "spikes_this_month": 18
+  },
+  {
+   "state": "Borno",
+   "commodity": "Beans (white)",
+   "month": "2026-03",
+   "score": 0.201,
+   "reasons": [
+    "above its six-month trend",
+    "neighbouring states rising",
+    "price rose last month"
+   ],
+   "actual": 1,
+   "rank": 2,
+   "pairs_this_month": 52,
+   "spikes_this_month": 18
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Beans (red)",
+   "month": "2026-03",
+   "score": 0.197,
+   "reasons": [
+    "above its six-month trend",
+    "price rose last month",
+    "seasonal timing"
+   ],
+   "actual": 1,
+   "rank": 3,
+   "pairs_this_month": 52,
+   "spikes_this_month": 18
+  },
+  {
+   "state": "Borno",
+   "commodity": "Milk (powder)",
+   "month": "2026-03",
+   "score": 0.165,
+   "reasons": [
+    "unusually volatile recently",
+    "above its six-month trend",
+    "seasonal timing"
+   ],
+   "actual": 0,
+   "rank": 4,
+   "pairs_this_month": 52,
+   "spikes_this_month": 18
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Fish",
+   "month": "2026-03",
+   "score": 0.161,
+   "reasons": [
+    "price rose last month",
+    "seasonal timing",
+    "above its six-month trend"
+   ],
+   "actual": 1,
+   "rank": 5,
+   "pairs_this_month": 52,
+   "spikes_this_month": 18
+  },
+  {
+   "state": "Borno",
+   "commodity": "Fish",
+   "month": "2026-03",
+   "score": 0.156,
+   "reasons": [
+    "seasonal timing",
+    "above its six-month trend",
+    "neighbouring states rising"
+   ],
+   "actual": 1,
+   "rank": 6,
+   "pairs_this_month": 52,
+   "spikes_this_month": 18
+  },
+  {
+   "state": "Borno",
+   "commodity": "Beans (red)",
+   "month": "2026-03",
+   "score": 0.131,
+   "reasons": [
+    "above its six-month trend",
+    "seasonal timing",
+    "neighbouring states rising"
+   ],
+   "actual": 0,
+   "rank": 7,
+   "pairs_this_month": 52,
+   "spikes_this_month": 18
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Oranges",
+   "month": "2026-03",
+   "score": 0.129,
+   "reasons": [
+    "seasonal timing",
+    "this month was bad last year",
+    "price rose last month"
+   ],
+   "actual": 0,
+   "rank": 8,
+   "pairs_this_month": 52,
+   "spikes_this_month": 18
+  },
+  {
+   "state": "Borno",
+   "commodity": "Bananas",
+   "month": "2026-04",
+   "score": 0.796,
+   "reasons": [
+    "price rose last month",
+    "above its six-month trend",
+    "seasonal timing"
+   ],
+   "actual": 1,
+   "rank": 1,
+   "pairs_this_month": 52,
+   "spikes_this_month": 10
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Fish",
+   "month": "2026-04",
+   "score": 0.787,
+   "reasons": [
+    "price rose last month",
+    "above its six-month trend",
+    "neighbouring states rising"
+   ],
+   "actual": 1,
+   "rank": 2,
+   "pairs_this_month": 52,
+   "spikes_this_month": 10
+  },
+  {
+   "state": "Borno",
+   "commodity": "Fish",
+   "month": "2026-04",
+   "score": 0.606,
+   "reasons": [
+    "neighbouring states rising",
+    "above its six-month trend",
+    "price rose last month"
+   ],
+   "actual": 0,
+   "rank": 3,
+   "pairs_this_month": 52,
+   "spikes_this_month": 10
+  },
+  {
+   "state": "Borno",
+   "commodity": "Cowpeas",
+   "month": "2026-04",
+   "score": 0.492,
+   "reasons": [
+    "above its six-month trend",
+    "price rose last month",
+    "seasonal timing"
+   ],
+   "actual": 0,
+   "rank": 4,
+   "pairs_this_month": 52,
+   "spikes_this_month": 10
+  },
+  {
+   "state": "Borno",
+   "commodity": "Spinach",
+   "month": "2026-04",
+   "score": 0.441,
+   "reasons": [
+    "price rose last month",
+    "above its six-month trend",
+    "seasonal timing"
+   ],
+   "actual": 1,
+   "rank": 5,
+   "pairs_this_month": 52,
+   "spikes_this_month": 10
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Bananas",
+   "month": "2026-04",
+   "score": 0.418,
+   "reasons": [
+    "neighbouring states rising",
+    "price rose last month",
+    "seasonal timing"
+   ],
+   "actual": 0,
+   "rank": 6,
+   "pairs_this_month": 52,
+   "spikes_this_month": 10
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Meat (goat)",
+   "month": "2026-04",
+   "score": 0.39,
+   "reasons": [
+    "price rose last month",
+    "above its six-month trend",
+    "seasonal timing"
+   ],
+   "actual": 1,
+   "rank": 7,
+   "pairs_this_month": 52,
+   "spikes_this_month": 10
+  },
+  {
+   "state": "Borno",
+   "commodity": "Maize flour",
+   "month": "2026-04",
+   "score": 0.39,
+   "reasons": [
+    "price rose last month",
+    "above its six-month trend",
+    "seasonal timing"
+   ],
+   "actual": 1,
+   "rank": 8,
+   "pairs_this_month": 52,
+   "spikes_this_month": 10
+  },
+  {
+   "state": "Borno",
+   "commodity": "Bananas",
+   "month": "2026-05",
+   "score": 0.484,
+   "reasons": [
+    "above its six-month trend",
+    "price rose last month",
+    "seasonal timing"
+   ],
+   "actual": 1,
+   "rank": 1,
+   "pairs_this_month": 52,
+   "spikes_this_month": 12
+  },
+  {
+   "state": "Borno",
+   "commodity": "Tomatoes",
+   "month": "2026-05",
+   "score": 0.456,
+   "reasons": [
+    "price rose last month",
+    "above its six-month trend",
+    "seasonal timing"
+   ],
+   "actual": 1,
+   "rank": 2,
+   "pairs_this_month": 52,
+   "spikes_this_month": 12
+  },
+  {
+   "state": "Borno",
+   "commodity": "Oranges",
+   "month": "2026-05",
+   "score": 0.377,
+   "reasons": [
+    "price rose last month",
+    "above its six-month trend",
+    "seasonal timing"
+   ],
+   "actual": 0,
+   "rank": 3,
+   "pairs_this_month": 52,
+   "spikes_this_month": 12
+  },
+  {
+   "state": "Borno",
+   "commodity": "Milk (powder)",
+   "month": "2026-05",
+   "score": 0.367,
+   "reasons": [
+    "unusually volatile recently",
+    "above its six-month trend",
+    "price rose last month"
+   ],
+   "actual": 0,
+   "rank": 4,
+   "pairs_this_month": 52,
+   "spikes_this_month": 12
+  },
+  {
+   "state": "Borno",
+   "commodity": "Watermelons",
+   "month": "2026-05",
+   "score": 0.353,
+   "reasons": [
+    "price rose last month",
+    "above its six-month trend",
+    "seasonal timing"
+   ],
+   "actual": 0,
+   "rank": 5,
+   "pairs_this_month": 52,
+   "spikes_this_month": 12
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Tomatoes",
+   "month": "2026-05",
+   "score": 0.272,
+   "reasons": [
+    "price rose last month",
+    "neighbouring states rising",
+    "this month was bad last year"
+   ],
+   "actual": 1,
+   "rank": 6,
+   "pairs_this_month": 52,
+   "spikes_this_month": 12
+  },
+  {
+   "state": "Borno",
+   "commodity": "Spinach",
+   "month": "2026-05",
+   "score": 0.271,
+   "reasons": [
+    "above its six-month trend",
+    "price rose last month",
+    "seasonal timing"
+   ],
+   "actual": 1,
+   "rank": 7,
+   "pairs_this_month": 52,
+   "spikes_this_month": 12
+  },
+  {
+   "state": "Yobe",
+   "commodity": "Fish",
+   "month": "2026-05",
+   "score": 0.237,
+   "reasons": [
+    "above its six-month trend",
+    "seasonal timing",
+    "well above this time last year"
+   ],
+   "actual": 1,
+   "rank": 8,
+   "pairs_this_month": 52,
+   "spikes_this_month": 12
+  },
+  {
+   "state": "Borno",
+   "commodity": "Spinach",
+   "month": "2026-06",
+   "score": 0.691,
+   "reasons": [
+    "above its six-month trend",
+    "price rose last month",
+    "neighbouring states rising"
+   ],
+   "actual": 1,
+   "rank": 1,
+   "pairs_this_month": 26,
+   "spikes_this_month": 8
+  },
+  {
+   "state": "Borno",
+   "commodity": "Tomatoes",
+   "month": "2026-06",
+   "score": 0.684,
+   "reasons": [
+    "above its six-month trend",
+    "price rose last month",
+    "neighbouring states rising"
+   ],
+   "actual": 1,
+   "rank": 2,
+   "pairs_this_month": 26,
+   "spikes_this_month": 8
+  },
+  {
+   "state": "Borno",
+   "commodity": "Onions",
+   "month": "2026-06",
+   "score": 0.449,
+   "reasons": [
+    "price rose last month",
+    "above its six-month trend",
+    "neighbouring states rising"
+   ],
+   "actual": 0,
+   "rank": 3,
+   "pairs_this_month": 26,
+   "spikes_this_month": 8
+  },
+  {
+   "state": "Borno",
+   "commodity": "Bananas",
+   "month": "2026-06",
+   "score": 0.331,
+   "reasons": [
+    "above its six-month trend",
+    "fuel cost climbing",
+    "this month was bad last year"
+   ],
+   "actual": 0,
+   "rank": 4,
+   "pairs_this_month": 26,
+   "spikes_this_month": 8
+  },
+  {
+   "state": "Borno",
+   "commodity": "Fish",
+   "month": "2026-06",
+   "score": 0.315,
+   "reasons": [
+    "above its six-month trend",
+    "price rose last month",
+    "neighbouring states rising"
+   ],
+   "actual": 0,
+   "rank": 5,
+   "pairs_this_month": 26,
+   "spikes_this_month": 8
+  },
+  {
+   "state": "Borno",
+   "commodity": "Beans (white)",
+   "month": "2026-06",
+   "score": 0.257,
+   "reasons": [
+    "above its six-month trend",
+    "price rose last month",
+    "fuel cost climbing"
+   ],
+   "actual": 0,
+   "rank": 6,
+   "pairs_this_month": 26,
+   "spikes_this_month": 8
+  },
+  {
+   "state": "Borno",
+   "commodity": "Rice (local)",
+   "month": "2026-06",
+   "score": 0.238,
+   "reasons": [
+    "above its six-month trend",
+    "price rose last month",
+    "fuel cost climbing"
+   ],
+   "actual": 0,
+   "rank": 7,
+   "pairs_this_month": 26,
+   "spikes_this_month": 8
+  },
+  {
+   "state": "Borno",
+   "commodity": "Sorghum",
+   "month": "2026-06",
+   "score": 0.23,
+   "reasons": [
+    "price rose last month",
+    "fuel cost climbing",
+    "neighbouring states rising"
+   ],
+   "actual": 0,
+   "rank": 8,
+   "pairs_this_month": 26,
+   "spikes_this_month": 8
+  }
+ ]
+}

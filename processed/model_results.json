@@ -1,0 +1,30 @@
+{
+  "logistic": {
+    "threshold": 0.25,
+    "recall": 0.852,
+    "precision": 0.186,
+    "macro_f1": 0.463,
+    "pr_auc": 0.356,
+    "roc_auc": 0.738,
+    "prec_at_50": 0.46,
+    "brier_raw": 0.1866,
+    "brier_cal": 0.1264
+  },
+  "trees": {
+    "threshold": 0.25,
+    "recall": 0.513,
+    "precision": 0.196,
+    "macro_f1": 0.536,
+    "pr_auc": 0.301,
+    "roc_auc": 0.635,
+    "prec_at_50": 0.5,
+    "brier_raw": 0.1774,
+    "brier_cal": 0.128
+  },
+  "baseline": {
+    "recall": 0.043,
+    "precision": 0.714,
+    "macro_f1": 0.508
+  },
+  "test_base_rate": 0.1265
+}

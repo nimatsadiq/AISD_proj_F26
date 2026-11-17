@@ -1,0 +1,134 @@
+[
+  {
+    "state": "Borno",
+    "commodity": "Milk (powder)",
+    "month": "2026-06",
+    "score": 0.796,
+    "reasons": [
+      "unusually volatile recently",
+      "seasonal timing",
+      "price climbing over three months"
+    ]
+  },
+  {
+    "state": "Borno",
+    "commodity": "Tomatoes",
+    "month": "2026-06",
+    "score": 0.695,
+    "reasons": [
+      "above its six-month trend",
+      "price rose last month",
+      "seasonal timing"
+    ]
+  },
+  {
+    "state": "Borno",
+    "commodity": "Spinach",
+    "month": "2026-06",
+    "score": 0.692,
+    "reasons": [
+      "above its six-month trend",
+      "price rose last month",
+      "neighbouring states rising"
+    ]
+  },
+  {
+    "state": "Borno",
+    "commodity": "Bananas",
+    "month": "2026-06",
+    "score": 0.521,
+    "reasons": [
+      "above its six-month trend",
+      "unusually volatile recently",
+      "seasonal timing"
+    ]
+  },
+  {
+    "state": "Borno",
+    "commodity": "Beans (white)",
+    "month": "2026-06",
+    "score": 0.507,
+    "reasons": [
+      "unusually volatile recently",
+      "seasonal timing",
+      "above its six-month trend"
+    ]
+  },
+  {
+    "state": "Borno",
+    "commodity": "Onions",
+    "month": "2026-06",
+    "score": 0.502,
+    "reasons": [
+      "above its six-month trend",
+      "price rose last month",
+      "seasonal timing"
+    ]
+  },
+  {
+    "state": "Borno",
+    "commodity": "Fish",
+    "month": "2026-06",
+    "score": 0.455,
+    "reasons": [
+      "above its six-month trend",
+      "seasonal timing",
+      "well above this time last year"
+    ]
+  },
+  {
+    "state": "Borno",
+    "commodity": "Watermelons",
+    "month": "2026-06",
+    "score": 0.406,
+    "reasons": [
+      "seasonal timing",
+      "unusually volatile recently",
+      "above its six-month trend"
+    ]
+  },
+  {
+    "state": "Borno",
+    "commodity": "Beans (red)",
+    "month": "2026-06",
+    "score": 0.405,
+    "reasons": [
+      "seasonal timing",
+      "above its six-month trend",
+      "unusually volatile recently"
+    ]
+  },
+  {
+    "state": "Borno",
+    "commodity": "Sorghum",
+    "month": "2026-06",
+    "score": 0.404,
+    "reasons": [
+      "seasonal timing",
+      "price rose last month",
+      "unusually volatile recently"
+    ]
+  },
+  {
+    "state": "Borno",
+    "commodity": "Oranges",
+    "month": "2026-06",
+    "score": 0.394,
+    "reasons": [
+      "seasonal timing",
+      "unusually volatile recently",
+      "above its six-month trend"
+    ]
+  },
+  {
+    "state": "Borno",
+    "commodity": "Rice (imported)",
+    "month": "2026-06",
+    "score": 0.388,
+    "reasons": [
+      "unusually volatile recently",
+      "seasonal timing",
+      "price rose last month"
+    ]
+  }
+]
