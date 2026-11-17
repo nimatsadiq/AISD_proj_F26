@@ -1,4 +1,4 @@
-"""Generate the eight Phase 2 diagnostic figures at 300 DPI.
+"""Pipeline diagnostic figures, rendered at 300 DPI.
 
 Each function returns the path it wrote. Colour choices follow one rule per
 job: a single hue light-to-dark for magnitude (missingness, PCA), a two-hue
@@ -358,5 +358,117 @@ def fig6_1_calibration(y_true, p_raw, p_cal, figdir="figures", n_bins=10):
     fig.suptitle("Figure 6.1  Probability calibration under weighted loss",
                  y=1.02, fontsize=11, fontweight="bold")
     p = _out(figdir, "fig6_1_calibration.png")
+    fig.savefig(p); plt.close(fig)
+    return p
+
+
+# ---------------------------------------------------------------- 7.1
+def fig7_1_model_comparison(y_test, scores, base_rate, matched, figdir="figures"):
+    """Precision-recall curves and precision at matched recall.
+
+    Two panels because the two views disagree, and the disagreement is the
+    finding. The left panel shows the whole curve, which favours models that
+    rank their top handful well. The right panel reads precision off at the
+    recall target the system actually has to meet, which is where model
+    selection happens.
+
+    `scores` maps model name to predicted probabilities on the test set.
+    `matched` maps model name to precision at the recall target.
+    """
+    from sklearn.metrics import precision_recall_curve, average_precision_score
+
+    palette = [PRIMARY, "#4a7b9d", "#7d9b76", "#8a6d9e", "#c08a4a", MUTED]
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4.8))
+
+    for (name, p), colour in zip(scores.items(), palette):
+        pr, rc, _ = precision_recall_curve(y_test, p)
+        ap = average_precision_score(y_test, p)
+        ax1.plot(rc, pr, lw=1.9, color=colour, label=f"{name} (AP {ap:.3f})")
+    ax1.axhline(base_rate, color=INK, lw=1.2, ls="--",
+                label=f"base rate {base_rate:.3f}")
+    ax1.axvline(0.80, color=INK, lw=1.0, ls=":")
+    ax1.text(0.79, 0.52, "recall target", transform=ax1.get_xaxis_transform(),
+             fontsize=8, color=INK, rotation=90, va="center", ha="right")
+    ax1.set_xlabel("Recall"); ax1.set_ylabel("Precision")
+    ax1.set_title("Precision-recall curves, test partition")
+    ax1.legend(frameon=False, fontsize=7.5, loc="upper right", bbox_to_anchor=(1.0, 1.02))
+    ax1.grid(alpha=0.45)
+
+    names = list(matched)
+    vals = [matched[n] for n in names]
+    order = np.argsort(vals)
+    names = [names[i] for i in order]; vals = [vals[i] for i in order]
+    colours = [PRIMARY if v == max(vals) else SECONDARY for v in vals]
+    bars = ax2.barh(names, vals, color=colours, height=0.62)
+    for b, v in zip(bars, vals):
+        ax2.text(b.get_width() + 0.004, b.get_y() + b.get_height() / 2,
+                 f"{v:.3f}", va="center", fontsize=8.5, color=MUTED)
+    ax2.axvline(base_rate, color=INK, lw=1.2, ls="--")
+    ax2.text(base_rate + 0.004, -0.42, f"base rate {base_rate:.3f}",
+             fontsize=8, color=INK)
+    ax2.set_xlim(0, max(vals) * 1.28)
+    ax2.set_xlabel("Precision at recall = 0.80")
+    ax2.set_title("Precision once the recall target is met")
+    ax2.tick_params(labelsize=8.5)
+    ax2.grid(axis="x", alpha=0.45)
+
+    fig.suptitle("Figure 7.1  Model comparison on identical features and split",
+                 y=1.03, fontsize=11, fontweight="bold")
+    p = _out(figdir, "fig7_1_model_comparison.png")
+    fig.savefig(p); plt.close(fig)
+    return p
+
+
+# ---------------------------------------------------------------- 9.1
+def fig9_1_rolling_performance(monthly, comparison, figdir="figures"):
+    """Walk-forward retraining: per-month hit rate and policy comparison.
+
+    The left panel is the operating reality: each month the model is refitted
+    on data available at that point and scores the month ahead. The right
+    panel asks whether discarding old data helps, which is the structural
+    break argument tested rather than asserted.
+    """
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12.5, 4.6),
+                                   gridspec_kw={"width_ratios": [1.65, 1]})
+
+    m = monthly.copy()
+    m["dt"] = pd.to_datetime(m["month"])
+    m["hit_rate"] = m["top5_hits"] / 5.0
+    ax1.bar(m["dt"], m["hit_rate"] * 100, width=22, color=SECONDARY)
+    ax1.axhline(m["hit_rate"].mean() * 100, color=PRIMARY, lw=1.8, ls="--",
+                label=f"mean {m['hit_rate'].mean()*100:.0f}%")
+    ax1.axvline(pd.Timestamp("2023-07-01"), color=INK, lw=1.2, ls=":")
+    ax1.text(pd.Timestamp("2023-08-01"), 92, "subsidy removal\n& currency float",
+             fontsize=7.5, color=INK)
+    ax1.set_ylabel("Correct in the top 5 (%)")
+    ax1.set_ylim(0, 108)
+    ax1.set_title("Monthly hit rate under walk-forward retraining")
+    ax1.legend(frameon=False, fontsize=8)
+    ax1.grid(axis="y", alpha=0.45)
+
+    c = comparison.copy()
+    c["label"] = [p if w != w or w is None else f"rolling {int(w)}m"
+                  for p, w in zip(c["policy"], c["window_months"])]
+    c = c.sort_values("top5_precision")
+    colours = [PRIMARY if v == c["top5_precision"].max() else SECONDARY
+               for v in c["top5_precision"]]
+    bars = ax2.barh(c["label"], c["top5_precision"] * 100, color=colours, height=0.6)
+    for b, v in zip(bars, c["top5_precision"]):
+        ax2.text(b.get_width() + 0.7, b.get_y() + b.get_height() / 2,
+                 f"{v*100:.1f}%", va="center", fontsize=9, color=MUTED)
+    base = c["total_spikes"].iloc[0] / c["total_rows"].iloc[0]
+    ax2.axvline(base * 100, color=INK, lw=1.4, ls="--")
+    ax2.text(base * 100 + 0.7, -0.45, f"base rate {base*100:.0f}%",
+             fontsize=8, color=INK)
+    ax2.set_xlim(0, c["top5_precision"].max() * 100 * 1.25)
+    ax2.set_xlabel("Precision in the top 5 each month (%)")
+    ax2.set_title("Training window policy")
+    ax2.grid(axis="x", alpha=0.45)
+
+    fig.suptitle("Figure 9.1  Rolling-window retraining, evaluated month by month",
+                 y=1.03, fontsize=11, fontweight="bold")
+    fig.tight_layout()
+    p = _out(figdir, "fig9_1_rolling_performance.png")
     fig.savefig(p); plt.close(fig)
     return p

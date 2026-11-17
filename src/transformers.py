@@ -3,7 +3,7 @@
 Every transformer is scikit-learn compatible (fit / transform) so it can sit
 inside a Pipeline and be fitted strictly on training folds.
 
-Design notes carried over from the Phase 1 strategy report:
+Design notes carried over from the preprocessing strategy:
 
 * Price levels are never capped. An extreme upward movement is the target
   event, so winsorising prices would delete positive cases from the data.
@@ -295,19 +295,43 @@ class ShortGapInterpolator(BaseEstimator, TransformerMixin):
     spike cycle. A longer silence is left alone: bridging it would invent a
     smooth price path through exactly the period most likely to contain a
     spike, destroying the label and fabricating the features.
+
+    `method` decides how the hole is filled, and the choice matters more than
+    it looks:
+
+    * ``"ffill"`` (default) carries the last observed price forward. It uses
+      only the past, so it is safe anywhere in the panel.
+    * ``"linear"`` averages the months either side. That reads *forward*, and
+      the month it reads is the month the label is built from: the label at
+      *t* compares the price at *t+1* against the trailing mean of *t-2..t*.
+      If the price at *t* is half the price at *t+1*, then the row's own
+      features carry a piece of its own answer. On this panel that affects
+      114 labelled rows directly and 387 through the trailing window, so it
+      is small, but it is leakage and it is not confined to split boundaries.
+
+    Linear is kept only so the two can be compared.
     """
 
-    def __init__(self, max_gap=1):
+    def __init__(self, max_gap=1, method="ffill"):
         self.max_gap = max_gap
+        self.method = method
 
     def fit(self, X, y=None):
         return self
 
     def transform(self, X):
         df = X.copy()
-        filled = df.groupby(["state", "commodity"])["price"].transform(
-            lambda s: s.interpolate(limit=self.max_gap, limit_area="inside")
-        )
+        if self.method == "linear":
+            filler = lambda s: s.interpolate(limit=self.max_gap, limit_area="inside")
+        elif self.method == "ffill":
+            # Backward-looking only: carry the last observed price forward,
+            # and only across a gap of at most `max_gap` months.
+            filler = lambda s: s.ffill(limit=self.max_gap).where(
+                s.notna() | s.bfill().notna()
+            )
+        else:
+            raise ValueError(f"unknown method {self.method!r}")
+        filled = df.groupby(["state", "commodity"])["price"].transform(filler)
         df["price_was_interpolated"] = (df["price"].isna() & filled.notna()).astype(int)
         df["price"] = filled
         return df

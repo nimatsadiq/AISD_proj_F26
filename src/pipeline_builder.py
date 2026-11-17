@@ -42,12 +42,12 @@ RATIO_FEATURES = [
     "fuel_mom_3m",
 ]
 
-# Phase 1 planned four missingness features. Two of them, `is_gap` and
+# The design specified four missingness features. Two of them, `is_gap` and
 # `months_since_obs`, turn out to be constant inside the modelling set: a gap
 # month has no price, so it has no trailing mean, so it has no label, so it is
 # never a modelled row. The MNAR signal survives through the two features
 # below, which describe gaps in a row's recent history rather than in the row
-# itself. See the Phase 2 decision log.
+# itself. See the implementation audit.
 MISSINGNESS_FEATURES = [
     "gaps_last_6m",
     "price_was_interpolated",
@@ -65,7 +65,8 @@ CATEGORICAL_FEATURES = ["state", "food_type"]
 TARGET = "spike_next_month"
 
 
-def build_panel(raw, threshold=0.15, states=None, start="2016-01-01"):
+def build_panel(raw, threshold=0.15, states=None, start="2016-01-01",
+                gap_method="ffill"):
     """Raw WFP long format to a labelled, feature-complete panel.
 
     Deterministic and target-free: reshaping, backward-looking windows and
@@ -77,7 +78,7 @@ def build_panel(raw, threshold=0.15, states=None, start="2016-01-01"):
     """
     steps = [
         ("panel", PanelBuilder(states=states, start=start)),
-        ("short_gaps", ShortGapInterpolator(max_gap=1)),
+        ("short_gaps", ShortGapInterpolator(max_gap=1, method=gap_method)),
         ("missing", MissingnessIndicator()),
         ("label", LabelBuilder(threshold=threshold)),
         ("lags", LagFeatureBuilder()),
@@ -109,21 +110,34 @@ def temporal_split(panel, train_end="2023-06-30", val_end="2024-12-31"):
     return train, val, test
 
 
-def _column_transformer(scale: bool):
+#: Dropped from the LINEAR model only, by the collinearity protocol.
+#: Pairwise screen flagged (mom_3m, dev_from_6m) at rho = 0.876; VIF then
+#: flagged dev_from_12m at 10.52. Mutual information decided which of the
+#: overlapping pair to drop: dev_from_6m scores 0.0636 against dev_from_12m at
+#: 0.0353, so dev_from_12m goes. Max VIF falls from 10.52 to 6.72.
+#: Trees keep the full set: they split on rank order and are not destabilised
+#: by correlated inputs, so reducing for them would discard usable signal.
+VIF_DROPPED = ["dev_from_12m"]
+
+
+def _column_transformer(scale: bool, drop=()):
     numeric_steps = [("impute", SimpleImputer(strategy="median"))]
     if scale:
         numeric_steps.append(("scale", StandardScaler()))
+
+    ratio_cols = [c for c in RATIO_FEATURES if c not in drop]
+    other_cols = [c for c in MISSINGNESS_FEATURES + CYCLICAL_FEATURES if c not in drop]
 
     return ColumnTransformer(
         transformers=[
             (
                 "ratios",
                 Pipeline(
-                    [("cap", RatioCapper(columns=RATIO_FEATURES))] + numeric_steps
+                    [("cap", RatioCapper(columns=ratio_cols))] + numeric_steps
                 ),
-                RATIO_FEATURES,
+                ratio_cols,
             ),
-            ("other_numeric", Pipeline(numeric_steps), MISSINGNESS_FEATURES + CYCLICAL_FEATURES),
+            ("other_numeric", Pipeline(numeric_steps), other_cols),
             (
                 "categorical",
                 OneHotEncoder(handle_unknown="ignore", drop="first", sparse_output=False),
@@ -146,7 +160,7 @@ def build_logistic_pipeline(C=1.0):
     """
     return Pipeline(
         [
-            ("prep", _column_transformer(scale=True)),
+            ("prep", _column_transformer(scale=True, drop=VIF_DROPPED)),
             (
                 "model",
                 LogisticRegression(
@@ -157,8 +171,47 @@ def build_logistic_pipeline(C=1.0):
     )
 
 
+def build_extratrees_pipeline(**kwargs):
+    """Extremely randomised trees, unscaled. The selected non-linear model.
+
+    Chosen over gradient boosting on measured performance, not convention.
+    On the held-out test partition Extra Trees reached PR-AUC 0.386 and
+    precision@50 of 0.62, against 0.301 and 0.50 for XGBoost, with the same
+    features and the same temporal split. See `src/model_selection.py`.
+
+    The reason is the regime break. Boosting fits residuals sequentially and
+    has enough capacity to model the pre-2023 price regime tightly, which does
+    not transfer across the subsidy removal and currency float. Extra Trees
+    randomises split thresholds as well as features, which is a stronger
+    variance reduction and degrades more gracefully when the test distribution
+    shifts.
+
+    No scaling: trees split on rank order and are invariant to monotonic
+    rescaling, so a scaler would add a fitted step with no benefit and one
+    more opportunity for leakage. No collinearity reduction either, for the
+    same reason the full feature set is kept for any tree model.
+    """
+    from sklearn.ensemble import ExtraTreesClassifier
+
+    params = dict(
+        n_estimators=400,
+        min_samples_leaf=8,
+        class_weight="balanced",
+        n_jobs=-1,
+        random_state=42,
+    )
+    params.update(kwargs)
+    return Pipeline(
+        [("prep", _column_transformer(scale=False)), ("model", ExtraTreesClassifier(**params))]
+    )
+
+
 def build_tree_pipeline(**kwargs):
-    """Gradient boosted trees, unscaled.
+    """Gradient boosted trees, unscaled. Retained for comparison only.
+
+    Tested and not selected: it placed last of six candidates on every metric
+    (see `src/model_selection.py`). Kept in the codebase so the comparison is
+    reproducible rather than asserted.
 
     Trees split on rank order, which is invariant to monotonic rescaling, so
     a scaler would add a fitted step with no benefit and one more chance of
