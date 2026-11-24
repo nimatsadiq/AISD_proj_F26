@@ -1,0 +1,6 @@
+# Serving only. No pandas, no scikit-learn, no training data: this container
+# reads precomputed predictions and answers HTTP. Keeping it thin is what
+# makes the image small and the cold start fast.
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+pydantic==2.9.2
