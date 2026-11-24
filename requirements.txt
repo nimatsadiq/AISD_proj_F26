@@ -15,5 +15,14 @@ shap==0.46.0
 matplotlib==3.9.2
 seaborn==0.13.2
 
+# Dashboard (app.py), needed by Streamlit Community Cloud
+streamlit==1.38.0
+
+# Prediction service (serve/). Also pinned in serve/requirements.txt, which is
+# the only one the container installs.
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+pydantic==2.9.2
+
 # Notebook
 jupyter==1.0.0
