@@ -1,0 +1,79 @@
+# Turns "retrained monthly" from a claim into a mechanism.
+#
+# WFP publishes on no fixed day, so this runs on the 5th of each month, which
+# is late enough that the previous month is usually available and early enough
+# to matter to a buyer. It refits on history, rescores every state-and-commodity
+# pair, and commits the new prediction store. The serving container reads that
+# file, so a successful run here is what makes the live endpoint current.
+#
+# It can also be run by hand from the Actions tab, which is what you want
+# before a demo.
+
+name: Monthly warnings refresh
+
+on:
+  schedule:
+    - cron: "17 6 5 * *"      # 06:17 UTC on the 5th
+  workflow_dispatch:           # and on demand
+
+permissions:
+  contents: write              # the job commits the refreshed store
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Refit and rescore
+        run: python -m src.make_warnings
+
+      - name: Record this month's precision
+        # One line per run. This is the monitoring: if precision at 5 drifts
+        # down over several months, it shows up here before anyone complains.
+        run: |
+          python - <<'PY'
+          import csv, json, os, datetime
+          meta = json.load(open("data/processed/dashboard_warnings.json"))["meta"]
+          row = {
+              "run_date": datetime.date.today().isoformat(),
+              "months_scored": meta.get("months"),
+              "pairs_scored": meta.get("pairs_scored"),
+              "base_rate": meta.get("base_rate"),
+              "precision_at_5": meta.get("precision_at_k", {}).get("5"),
+          }
+          path = "data/processed/precision_log.csv"
+          new = not os.path.exists(path)
+          with open(path, "a", newline="") as fh:
+              w = csv.DictWriter(fh, fieldnames=list(row))
+              if new:
+                  w.writeheader()
+              w.writerow(row)
+          print(row)
+          PY
+
+      - name: Commit the refreshed store
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f data/processed/dashboard_warnings.json \
+                     data/processed/warning_reasons.json \
+                     data/processed/precision_log.csv
+          if git diff --cached --quiet; then
+            echo "No change in the warnings feed; nothing to commit."
+          else
+            git commit -m "Monthly refresh: rescore warnings [skip ci]"
+            git push
+          fi
