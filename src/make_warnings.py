@@ -36,13 +36,22 @@ RAW = "data/raw/wfp_food_prices_nga.csv"
 OUT = "data/processed/dashboard_warnings.json"
 
 WINDOW = 48      # months of training history, the policy selected in rolling.py
+PURGE = 1        # months dropped at the boundary; equals the label's forward reach
 TOP_N = 8        # warnings kept per month; the dashboard slider shows 3 to 8
 MIN_TRAIN = 400
 
 
-def _fit_for(df, month, window=WINDOW, min_train=MIN_TRAIN):
-    """Fit and calibrate on history strictly before `month`, or return None."""
-    history = df[df["month"] < month]
+def _fit_for(df, month, window=WINDOW, min_train=MIN_TRAIN, purge=PURGE):
+    """Fit and calibrate on history before the purge boundary, or return None.
+
+    The purge matches the one in `rolling.py`, and for the same reason: the
+    label at month *t* is computed from the price at *t+1*, so the row at
+    `month - 1` carries the outcome of the month being scored. Production has
+    to use the same boundary the evaluation measured, or the deployed system
+    is not the system the numbers describe.
+    """
+    purge_cut = month - pd.DateOffset(months=purge) if purge else month
+    history = df[df["month"] < purge_cut]
     cutoff = month - pd.DateOffset(months=window)
     history = history[history["month"] >= cutoff]
     if len(history) < min_train or history[TARGET].sum() < 20:

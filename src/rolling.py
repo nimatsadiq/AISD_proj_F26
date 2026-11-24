@@ -39,11 +39,21 @@ def _precision_at_recall(y, p, target=0.80):
 
 
 def rolling_evaluation(panel, start="2023-01", window=36, policy="rolling",
-                       calibrate_each=True, min_train=400, keep_predictions=False):
+                       calibrate_each=True, min_train=400, keep_predictions=False,
+                       purge=1):
     """Walk forward month by month, refitting as an operator would.
 
-    For each evaluation month *m*: fit on rows strictly before *m*, optionally
-    recalibrate on the most recent held-back slice, then score month *m*.
+    For each evaluation month *m*: fit on rows strictly before the purge
+    boundary, optionally recalibrate on the most recent held-back slice, then
+    score month *m*.
+
+    **The purge window.** The label for month *t* is built from the price in
+    month *t+1*. So the row at month *m-1* carries a label computed from the
+    price in month *m*, which is the month being scored. Training on it would
+    let the outcome of the test month reach the model through the label, even
+    though no feature ever touches a future price. `purge=1` drops that row:
+    history ends at *m-2*, and the gap is exactly as wide as the label's
+    forward reach. Set `purge=0` to reproduce the un-purged numbers.
 
     `policy='rolling'` keeps only the last `window` months before *m*;
     `policy='expanding'` keeps everything. Returns one row per month plus the
@@ -56,7 +66,10 @@ def rolling_evaluation(panel, start="2023-01", window=36, policy="rolling",
     rows, pooled_y, pooled_p, kept = [], [], [], []
 
     for m in months:
-        history = df[df["month"] < m]
+        # Purge the boundary: the label at m-1 was computed from month m's
+        # price, so training on it leaks the test month's outcome.
+        purge_cut = m - pd.DateOffset(months=purge) if purge else m
+        history = df[df["month"] < purge_cut]
         if policy == "rolling":
             cutoff = m - pd.DateOffset(months=window)
             history = history[history["month"] >= cutoff]
