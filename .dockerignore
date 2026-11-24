@@ -1,0 +1,19 @@
+# Keep the image small: none of this is needed to serve predictions.
+data/raw/
+data/processed/*
+!data/processed/dashboard_warnings.json
+notebooks/
+figures/
+phase1_strategy/
+phase2_implementation/
+src/
+app.py
+dashboard.html
+README.md
+DEPLOY.md
+.git/
+.github/
+__pycache__/
+*.pyc
+.venv/
+venv/
