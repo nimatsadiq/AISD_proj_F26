@@ -19,3 +19,7 @@ env/
 
 # Notebook outputs that bloat diffs
 *.nbconvert.ipynb
+
+# Cloud keys: never commit
+*.pem
+bench_*.json.bak
