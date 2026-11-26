@@ -94,6 +94,17 @@ jobs:
         # nobody catches by reading the slide.
         run: python -m src.uncertainty
 
+      - name: Robustness audit
+        # The ablation and the stress tests belong on the same clock as the
+        # data. A feature that was worth nothing last year may be carrying the
+        # model now, and a fault the system shrugged off at one data volume
+        # can break it at another. Re-running them monthly costs about eight
+        # minutes and means the robustness claims describe the current system
+        # rather than the one that existed when somebody last ran a script.
+        run: |
+          python -m src.ablation
+          python -m src.stress
+
       - name: Record this month's precision
         # One line per run. This is the monitoring: if precision at 5 drifts
         # down over several months, it shows up here before anyone complains.
@@ -134,6 +145,8 @@ jobs:
                      data/processed/dashboard_warnings.json \
                      data/processed/warning_reasons.json \
                      data/processed/uncertainty.json \
+                     data/processed/ablation.json \
+                     data/processed/stress.json \
                      data/processed/precision_log.csv
           if git diff --cached --quiet; then
             echo "No change in the warnings feed; nothing to commit."
