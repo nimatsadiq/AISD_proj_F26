@@ -27,6 +27,9 @@ construction the rows the model was most worried about, and the resulting
 """
 
 import json
+import os
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 import pandas as pd
@@ -34,28 +37,75 @@ import streamlit as st
 
 DATA = Path("data/processed/dashboard_warnings.json")
 
+# Ask the deployed service first, fall back to the local file. Streamlit runs
+# server side, so unlike the browser dashboard it is not subject to the rule
+# against an HTTPS page calling an HTTP service, and it can read the live
+# endpoint directly. Point it somewhere else with SPIKE_API.
+API = os.environ.get("SPIKE_API", "http://56.228.75.61").rstrip("/")
+API_TIMEOUT = 4          # seconds; a slow answer is worse than the local file
+
 st.set_page_config(page_title="Food Price Spike Warnings",
                    page_icon="chart", layout="wide")
 
 
-@st.cache_data
-def load():
-    """Return (warnings frame, meta dict). Tolerates the pre-meta file shape."""
-    if not DATA.exists():
-        return pd.DataFrame(), {}
-    blob = json.loads(DATA.read_text())
-    if isinstance(blob, list):          # older export: warnings only
-        rows, meta = blob, {}
-    else:
-        rows, meta = blob["warnings"], blob.get("meta", {})
+def _frame(rows, meta):
     df = pd.DataFrame(rows)
+    if df.empty:
+        return df, meta
     df["month"] = pd.to_datetime(df["month"])
+    if "actual" not in df.columns:
+        df["actual"] = pd.NA
     return df.sort_values(["month", "score"], ascending=[False, False]), meta
 
 
-df, meta = load()
+@st.cache_data(ttl=300)
+def load():
+    """Return (warnings frame, meta dict, where it came from).
+
+    The live service is the source of truth, because the local file is only
+    as fresh as the last time somebody ran the batch job on this machine. If
+    the service cannot be reached the file still works, which is what matters
+    on a laptop with no network. Either way the page says which it used: a
+    dashboard that falls back silently is worse than one that fails loudly.
+    """
+    try:
+        with urllib.request.urlopen(API + "/warnings?k=20", timeout=API_TIMEOUT) as r:
+            if r.status != 200:
+                raise urllib.error.URLError(f"service answered {r.status}")
+        # /warnings gives one month; the store behind it gives every month,
+        # which is what the history chart needs.
+        with urllib.request.urlopen(API + "/feed", timeout=API_TIMEOUT) as r:
+            blob = json.loads(r.read().decode("utf-8"))
+        rows = [{"state": w["s"], "commodity": w["c"], "month": w["m"],
+                 "score": w["p"], "reasons": w["r"], "actual": w["a"],
+                 "status": w.get("status"), "predicts": w.get("predicts"),
+                 "pairs_this_month": w.get("pairs_this_month")}
+                for w in blob["warnings"]]
+        df, meta = _frame(rows, blob.get("meta", {}))
+        return df, meta, f"live from {API}"
+    except Exception as exc:                      # network, timeout, bad JSON
+        if not DATA.exists():
+            return pd.DataFrame(), {}, f"no data: {API} unreachable ({exc}) and no local file"
+        blob = json.loads(DATA.read_text())
+        if isinstance(blob, list):                # older export: warnings only
+            rows, meta = blob, {}
+        else:
+            rows, meta = blob["warnings"], blob.get("meta", {})
+        df, meta = _frame(rows, meta)
+        return df, meta, f"local file, {API} unreachable ({exc})"
+
+
+df, meta, source = load()
 
 st.title("Food price spike early warning")
+
+live = source.startswith("live")
+pend = (meta.get("live") or {}).get("predicts")
+if live:
+    st.success(f"Live from the prediction service"
+               + (f". Currently warning for {pend}." if pend else "."))
+else:
+    st.warning(f"Showing data from the {source}.")
 st.caption(
     "Each month, for every state and staple, the system estimates the chance "
     "that the price will rise more than 15% above its recent trend next month. "
@@ -114,10 +164,18 @@ for _, row in current.iterrows():
     st.divider()
 
 # ---- historical accuracy, stated plainly ------------------------------------
-if "actual" in df.columns:
+# Only months whose outcome is known belong here. The month being warned about
+# has no answer yet, and `sum()` over missing values returns 0, so including it
+# would draw the live prediction as a month the system got completely wrong.
+scored = df[df["actual"].notna()] if "actual" in df.columns else df.iloc[0:0]
+if not scored.empty:
     st.subheader("How the shortlist has performed")
+    st.caption(
+        "Months whose outcome is known. The month currently being warned "
+        "about is not here: nobody knows yet whether it was right."
+    )
     hist = (
-        df.groupby("month")
+        scored.groupby("month")
         .apply(lambda g: pd.Series({
             "shown": min(k, len(g)),
             "correct": int(g.nlargest(min(k, len(g)), "score")["actual"].sum()),

@@ -27,6 +27,13 @@ COPY serve/ ./serve/
 # and needs no database.
 COPY data/processed/dashboard_warnings.json ./data/processed/dashboard_warnings.json
 
+# The one page a person looks at, served from the same origin as the data it
+# reads. A browser will not let an HTTPS page call an HTTP service, and this
+# service has no certificate, so a dashboard hosted anywhere else could not
+# read it. Same origin, relative requests, no such problem. It is one static
+# file and adds nothing measurable to the image.
+COPY dashboard.html ./dashboard.html
+
 USER appuser
 EXPOSE 8000
 
