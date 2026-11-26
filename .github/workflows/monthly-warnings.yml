@@ -86,6 +86,14 @@ jobs:
       - name: Refit and rescore
         run: python -m src.make_warnings
 
+      - name: Recompute the confidence intervals
+        # The headline figure and its error bars have to come from the same
+        # data. Before this step the intervals were computed once by hand, so
+        # every refresh moved the headline and left the range describing an
+        # older window. Quoting one with the other is the kind of mistake
+        # nobody catches by reading the slide.
+        run: python -m src.uncertainty
+
       - name: Record this month's precision
         # One line per run. This is the monitoring: if precision at 5 drifts
         # down over several months, it shows up here before anyone complains.
@@ -125,6 +133,7 @@ jobs:
                      data/raw/SOURCE.md \
                      data/processed/dashboard_warnings.json \
                      data/processed/warning_reasons.json \
+                     data/processed/uncertainty.json \
                      data/processed/precision_log.csv
           if git diff --cached --quiet; then
             echo "No change in the warnings feed; nothing to commit."
