@@ -37,6 +37,12 @@ from .rolling import rolling_evaluation
 RAW = "data/raw/wfp_food_prices_nga.csv"
 OUT = "data/processed/ablation.json"
 
+# Match production. `make_warnings` trains on a 48-month window, and
+# `compare_policies` selected it, so an ablation run at the library default of
+# 36 would be measuring a model the project does not ship. The absolute
+# numbers would be wrong even though the comparison between groups held.
+WINDOW = 48
+
 # Grouped by the information they carry, not by how they were computed. A
 # group is what one source or one idea contributes, which is the unit someone
 # deciding what to collect would care about.
@@ -51,9 +57,10 @@ GROUPS = {
 }
 
 
-def _run(panel, drop=(), **kw):
+def _run(panel, drop=(), window=WINDOW, **kw):
     summary, _ = rolling_evaluation(
         panel,
+        window=window,
         pipeline_factory=(lambda: build_logistic_pipeline(drop_extra=list(drop))),
         **kw,
     )
