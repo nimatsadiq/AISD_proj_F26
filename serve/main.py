@@ -16,6 +16,13 @@ and retrieved when a request comes in. Nothing here runs a model.
                               no pandas, no training data, so the image is
                               small and the cold start is fast.
 
+The store holds two kinds of warning. A *scored* warning is for a month whose
+prices have since been published, so it carries the outcome and is evidence.
+A *pending* warning is for a month that has not happened: its outcome is null
+and it is what the system is actually for. `/warnings` returns the pending
+month when there is one, and every scored month stays readable at
+`/warnings/{month}` as the record behind it.
+
 Online prediction would be the wrong shape: prices publish monthly, no user
 request is pending, latency is irrelevant to correctness, and the input space
 is finite and known in advance (584 state-and-commodity pairs). Batch is the
@@ -44,16 +51,17 @@ from pydantic import BaseModel, Field
 
 STORE = Path(os.environ.get("WARNINGS_PATH", "data/processed/dashboard_warnings.json"))
 
-# One month behind is normal: the warnings for month t are published during
-# t-1. Two or more means the batch job has not run, and the service says so
-# rather than quietly serving a stale shortlist.
+# Zero months behind is the healthy state: the batch job scores the newest
+# month in the file and warns about the one after it. One is tolerable, since
+# WFP publishes on no fixed day. Two or more means the refresh has not run,
+# and the service says so rather than quietly serving a stale shortlist.
 STALE_AFTER_MONTHS = 2
 
 MONTH_RE = r"^\d{4}-(0[1-9]|1[0-2])$"
 
 app = FastAPI(
     title="Spike Watch prediction service",
-    version="1.1.0",
+    version="1.2.0",
     description=(
         "Monthly food price spike warnings for Borno, Yobe and Adamawa. "
         "Serves predictions computed ahead of time by the batch job."
@@ -79,6 +87,14 @@ class Warning(BaseModel):
     commodity: str
     score: float = Field(..., ge=0.0, le=1.0, description="Calibrated probability")
     reasons: List[str]
+    month: Optional[str] = Field(
+        None, description="Month whose prices were read")
+    predicts: Optional[str] = Field(
+        None, description="Month the warning is about: the month after it")
+    status: Optional[str] = Field(
+        None, description='"pending" if the month has not happened, else "scored"')
+    actual: Optional[int] = Field(
+        None, description="1 if the price did rise, 0 if not, null if not yet known")
 
 
 class Freshness(BaseModel):
@@ -89,6 +105,10 @@ class Freshness(BaseModel):
 
 class Shortlist(BaseModel):
     month: str
+    predicts: Optional[str] = None
+    outcome_known: Optional[bool] = None
+    caveat: Optional[str] = Field(
+        None, description="Set when the month behind this list was thinly reported")
     requested: int
     returned: int
     background_rate: Optional[float]
@@ -103,6 +123,7 @@ class Health(BaseModel):
     latest_month: Optional[str] = None
     months_behind: Optional[int] = None
     stale: Optional[bool] = None
+    pending_for: Optional[str] = None
     reason: Optional[str] = None
     checked_at: str
 
@@ -135,9 +156,40 @@ def _freshness(data: dict) -> dict:
     latest = months[-1]
     ly, lm = (int(p) for p in latest.split("-"))
     today = date.today()
-    behind = (today.year - ly) * 12 + (today.month - lm)
+    behind = max(0, (today.year - ly) * 12 + (today.month - lm))
     return {"latest_month": latest, "months_behind": behind,
             "stale": behind >= STALE_AFTER_MONTHS}
+
+
+def _caveat(data: dict, month: str) -> Optional[str]:
+    """A warning about the warning, when the month behind it was thin.
+
+    Returned in the response rather than logged, because the person deciding
+    what to buy is the one who needs to know that five markets had not
+    reported when this was computed.
+    """
+    live = (data.get("meta") or {}).get("live") or {}
+    if live.get("scored_from") != month:
+        return None
+    cov = live.get("coverage") or {}
+    if not cov.get("partial"):
+        return None
+    share = cov.get("share_of_normal")
+    pct = f"{share:.0%}" if isinstance(share, (int, float)) else "fewer"
+    return (f"{month} was only {pct} of its usual size when this was computed: "
+            "some markets had not reported yet. The ranking still holds, but "
+            "it rests on thinner data than the months it was measured on.")
+
+
+def _pending_for(data: dict) -> Optional[str]:
+    """The month a live warning is about, or None if the feed is all history."""
+    live = (data.get("meta") or {}).get("live") or {}
+    if live.get("predicts"):
+        return live["predicts"]
+    for w in data.get("warnings", []):
+        if w.get("status") == "pending" and w.get("predicts"):
+            return w["predicts"]
+    return None
 
 
 # Read once at start-up: the store only changes when the batch job runs.
@@ -176,13 +228,15 @@ def health() -> dict:
         return {"status": "unhealthy", "reason": _ERROR, "checked_at": now}
     fresh = _freshness(_DATA)
     return {"status": "degraded" if fresh["stale"] else "ok",
-            "warnings_in_store": len(_DATA["warnings"]), **fresh, "checked_at": now}
+            "warnings_in_store": len(_DATA["warnings"]), **fresh,
+            "pending_for": _pending_for(_DATA), "checked_at": now}
 
 
 @app.get("/months", summary="Months the store covers")
 def months() -> dict:
     data = _data()
-    return {"months": _months(data), **_freshness(data)}
+    return {"months": _months(data), "pending_for": _pending_for(data),
+            **_freshness(data)}
 
 
 @app.get("/warnings", response_model=Shortlist, summary="The current shortlist")
@@ -190,7 +244,12 @@ def warnings(
     k: int = Query(5, ge=1, le=20, description="How many foods to return"),
     state: Optional[str] = Query(None, max_length=40, description="Filter to one state"),
 ) -> dict:
-    """The newest month's shortlist.
+    """The shortlist for the newest month in the store.
+
+    When the batch job has a month with no outcome yet, that is the month
+    returned here, and `predicts` names the month being warned about. The
+    answer to "when is this spike" is that field, and `outcome_known` is
+    false until the prices for it are published.
 
     Five is the default deliberately: an alarm tuned to catch most spikes
     flags most of the market, and a buyer holding forty warnings has none.
@@ -223,8 +282,13 @@ def _for_month(data: dict, month: str, k: int, state: Optional[str]) -> dict:
         rows = [w for w in rows if w.get("state", "").lower() == state.lower()]
     rows.sort(key=lambda w: w.get("rank", 10**6))
     meta = data.get("meta", {})
+    predicts = next((w.get("predicts") for w in rows if w.get("predicts")), None)
+    pending = any(w.get("status") == "pending" for w in rows)
     return {
         "month": month,
+        "predicts": predicts,
+        "outcome_known": (not pending) if rows else None,
+        "caveat": _caveat(data, month),
         "requested": k,
         "returned": len(rows[:k]),
         "background_rate": meta.get("base_rate"),
@@ -245,12 +309,15 @@ def performance() -> dict:
     return {
         "tested_on_months": meta.get("months"),
         "pairs_scored": meta.get("pairs_scored"),
+        # The month currently being warned about, which by definition is not
+        # part of any accuracy figure below.
+        "pending": meta.get("live"),
         "background_rate": base,
         "precision_at_k": p_at,
         "lift_over_chance": {k: round(v / base, 2) for k, v in p_at.items()} if base else {},
         "retrained": meta.get("retrained"),
         "train_window_months": meta.get("train_window_months"),
-        "purge_months": 1,
+        "purge_months": meta.get("purge_months", 1),
         "note": (
             "Walk-forward: refit on data before each test month, with a "
             "one-month purge because the label looks one month ahead. "
