@@ -127,6 +127,10 @@ def _column_transformer(scale: bool, drop=()):
 
     ratio_cols = [c for c in RATIO_FEATURES if c not in drop]
     other_cols = [c for c in MISSINGNESS_FEATURES + CYCLICAL_FEATURES if c not in drop]
+    # Categoricals are droppable too. Without this an ablation could not remove
+    # the identity group, and "what is this model worth knowing nothing but the
+    # price history" would be unanswerable.
+    cat_cols = [c for c in CATEGORICAL_FEATURES if c not in drop]
 
     return ColumnTransformer(
         transformers=[
@@ -141,7 +145,7 @@ def _column_transformer(scale: bool, drop=()):
             (
                 "categorical",
                 OneHotEncoder(handle_unknown="ignore", drop="first", sparse_output=False),
-                CATEGORICAL_FEATURES,
+                cat_cols,
             ),
         ],
         remainder="drop",
@@ -149,7 +153,7 @@ def _column_transformer(scale: bool, drop=()):
     )
 
 
-def build_logistic_pipeline(C=1.0):
+def build_logistic_pipeline(C=1.0, drop_extra=()):
     """Median imputation, ratio capping, StandardScaler, logistic regression.
 
     L1/L2 penalties shrink coefficients in proportion to feature magnitude,
@@ -160,7 +164,7 @@ def build_logistic_pipeline(C=1.0):
     """
     return Pipeline(
         [
-            ("prep", _column_transformer(scale=True, drop=VIF_DROPPED)),
+            ("prep", _column_transformer(scale=True, drop=list(VIF_DROPPED) + list(drop_extra))),
             (
                 "model",
                 LogisticRegression(

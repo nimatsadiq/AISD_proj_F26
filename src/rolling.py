@@ -40,7 +40,7 @@ def _precision_at_recall(y, p, target=0.80):
 
 def rolling_evaluation(panel, start="2023-01", window=36, policy="rolling",
                        calibrate_each=True, min_train=400, keep_predictions=False,
-                       purge=1):
+                       purge=1, pipeline_factory=None):
     """Walk forward month by month, refitting as an operator would.
 
     For each evaluation month *m*: fit on rows strictly before the purge
@@ -85,7 +85,12 @@ def rolling_evaluation(panel, start="2023-01", window=36, policy="rolling",
             fit_part, cal_part = history, None
 
         y_fit = fit_part[TARGET].astype(int)
-        model = build_logistic_pipeline().fit(fit_part, y_fit)
+        # `pipeline_factory` exists so an ablation can remove a feature group
+        # and still run through this exact loop. Reimplementing the walk-forward
+        # inside the ablation script would let the two drift apart, and then the
+        # ablation would be measuring a different system from the one reported.
+        build = pipeline_factory or build_logistic_pipeline
+        model = build().fit(fit_part, y_fit)
 
         if calibrate_each and cal_part is not None and cal_part[TARGET].nunique() > 1:
             try:
