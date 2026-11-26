@@ -1,0 +1,134 @@
+# Turns "retrained monthly" from a claim into a mechanism.
+#
+# WFP publishes on no fixed day, so this runs on the 5th of each month, which
+# is late enough that the previous month is usually available and early enough
+# to matter to a buyer. It pulls the latest price file from HDX, refits on
+# history, rescores every state-and-commodity pair, and commits the new
+# prediction store. The serving container reads that file, so a successful run
+# here is what makes the live endpoint current.
+#
+# The download step is the difference between a system that is current and one
+# that is current until somebody forgets. An earlier version of this workflow
+# rescored whatever CSV happened to be committed, which meant the warnings
+# stayed internally consistent while the data underneath them went five months
+# stale with nothing to show it. Fetching the input is part of the job.
+#
+# It can also be run by hand from the Actions tab, which is what you want
+# before a demo.
+
+name: Monthly warnings refresh
+
+on:
+  schedule:
+    - cron: "17 6 5 * *"      # 06:17 UTC on the 5th
+  workflow_dispatch:           # and on demand
+
+permissions:
+  contents: write              # the job commits the refreshed store
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Fetch the latest prices from HDX
+        # HDX gives this resource a permanent URL, so the pipeline can pull its
+        # own input. A failure here is not a failure of the run: the committed
+        # snapshot is still there, so an HDX outage costs freshness rather than
+        # the whole refresh, and the recorded checksum shows which file was used.
+        env:
+          HDX_URL: https://data.humdata.org/dataset/42db041f-7aaf-4ab4-961f-2a12096861e7/resource/12b51155-0cd3-4806-9924-61ede4077591/download/wfp_food_prices_nga.csv
+        run: |
+          mkdir -p data/raw
+          target=data/raw/wfp_food_prices_nga.csv
+          if curl -fsSL --retry 3 --retry-delay 5 --max-time 300 "$HDX_URL" -o /tmp/wfp.csv; then
+            lines=$(wc -l < /tmp/wfp.csv)
+            # A truncated download or an HDX error page would be small. The
+            # committed file is ~100k lines, so anything under 50k is wrong.
+            if [ "$lines" -ge 50000 ]; then
+              mv /tmp/wfp.csv "$target"
+              echo "::notice::Downloaded $lines lines from HDX."
+            else
+              echo "::warning::Download was only $lines lines; keeping the committed snapshot."
+            fi
+          else
+            echo "::warning::HDX unreachable; keeping the committed snapshot."
+          fi
+          python - <<'PY'
+          import datetime, hashlib, pathlib
+          f = pathlib.Path("data/raw/wfp_food_prices_nga.csv")
+          digest = hashlib.sha256(f.read_bytes()).hexdigest()
+          pathlib.Path("data/raw/SOURCE.md").write_text(
+              "# Input snapshot\n\n"
+              "Written by .github/workflows/monthly-warnings.yml. This records which\n"
+              "file produced the warnings committed in the same run.\n\n"
+              f"- fetched: {datetime.date.today().isoformat()}\n"
+              f"- bytes: {f.stat().st_size}\n"
+              f"- sha256: {digest}\n"
+              "- source: WFP food prices for Nigeria, via HDX\n"
+              "- dataset: 42db041f-7aaf-4ab4-961f-2a12096861e7\n")
+          print("sha256", digest)
+          PY
+
+      - name: Refit and rescore
+        run: python -m src.make_warnings
+
+      - name: Record this month's precision
+        # One line per run. This is the monitoring: if precision at 5 drifts
+        # down over several months, it shows up here before anyone complains.
+        run: |
+          python - <<'PY'
+          import csv, json, os, datetime
+          meta = json.load(open("data/processed/dashboard_warnings.json"))["meta"]
+          live = meta.get("live") or {}
+          row = {
+              "run_date": datetime.date.today().isoformat(),
+              "months_scored": meta.get("months"),
+              "pairs_scored": meta.get("pairs_scored"),
+              "base_rate": meta.get("base_rate"),
+              "precision_at_5": meta.get("precision_at_k", {}).get("5"),
+              "warning_for": live.get("predicts"),
+          }
+          path = "data/processed/precision_log.csv"
+          new = not os.path.exists(path)
+          with open(path, "a", newline="") as fh:
+              w = csv.DictWriter(fh, fieldnames=list(row))
+              if new:
+                  w.writeheader()
+              w.writerow(row)
+          print(row)
+          if not row["warning_for"]:
+              raise SystemExit(
+                  "No forward-looking warning was produced. The price file ends "
+                  "on a month that already has an outcome, so this run has "
+                  "nothing to warn about.")
+          PY
+
+      - name: Commit the refreshed store
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f data/raw/wfp_food_prices_nga.csv \
+                     data/raw/SOURCE.md \
+                     data/processed/dashboard_warnings.json \
+                     data/processed/warning_reasons.json \
+                     data/processed/precision_log.csv
+          if git diff --cached --quiet; then
+            echo "No change in the warnings feed; nothing to commit."
+          else
+            git commit -m "Monthly refresh: rescore warnings [skip ci]"
+            git push
+          fi
