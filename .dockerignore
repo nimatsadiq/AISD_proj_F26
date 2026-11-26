@@ -8,7 +8,6 @@ phase1_strategy/
 phase2_implementation/
 src/
 app.py
-dashboard.html
 README.md
 DEPLOY.md
 .git/
