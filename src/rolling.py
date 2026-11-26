@@ -27,7 +27,12 @@ import pandas as pd
 from sklearn.metrics import average_precision_score, precision_recall_curve
 
 from .calibration import calibrate
-from .pipeline_builder import TARGET, build_logistic_pipeline, temporal_split
+from .pipeline_builder import (TARGET, build_logistic_pipeline, build_panel,
+                               temporal_split)
+
+
+RAW = "data/raw/wfp_food_prices_nga.csv"
+WINDOW_FOR_DETAIL = 48   # the policy selected by compare_policies
 
 
 def _precision_at_recall(y, p, target=0.80):
@@ -160,3 +165,38 @@ def compare_policies(panel, start="2023-01", windows=(24, 36, 48)):
         s, _ = rolling_evaluation(panel, start=start, policy="rolling", window=w)
         results.append(s)
     return pd.DataFrame(results)
+
+
+def main(raw_path=RAW, out_dir="data/processed", start="2023-01"):
+    """Regenerate the window-policy comparison and the per-month detail.
+
+    The README has always documented `python -m src.rolling` as the way to
+    reproduce these two files, but there was no entry point behind it, so the
+    command failed. The outputs it writes are the ones already committed:
+    `rolling_comparison.json` for the policy table and `rolling_monthly.csv`
+    for the month-by-month detail behind it.
+    """
+    import json
+    from pathlib import Path
+
+    panel = build_panel(pd.read_csv(raw_path, low_memory=False))
+    out = Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+
+    table = compare_policies(panel, start=start)
+    table.to_json(out / "rolling_comparison.json", orient="records", indent=2)
+
+    # The chosen policy, written out month by month so the table above can be
+    # checked against the months it came from.
+    _, monthly = rolling_evaluation(panel, start=start, policy="rolling",
+                                    window=WINDOW_FOR_DETAIL)
+    monthly.to_csv(out / "rolling_monthly.csv", index=False)
+
+    print(table.to_string(index=False))
+    print(f"\nwrote {out / 'rolling_comparison.json'}")
+    print(f"wrote {out / 'rolling_monthly.csv'} ({len(monthly)} months)")
+    return table
+
+
+if __name__ == "__main__":
+    main()
