@@ -47,9 +47,18 @@ from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException, Path as PathParam, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
 STORE = Path(os.environ.get("WARNINGS_PATH", "data/processed/dashboard_warnings.json"))
+
+# The dashboard is served from here rather than from a separate static host,
+# and the reason is a browser rule rather than a preference: a page served over
+# HTTPS may not call an HTTP service, and this service has no certificate. A
+# dashboard on GitHub Pages therefore cannot read it at all. Served from the
+# same origin as the API, the page's requests are relative and the question
+# does not arise.
+DASHBOARD = Path(os.environ.get("DASHBOARD_PATH", "dashboard.html"))
 
 # Zero months behind is the healthy state: the batch job scores the newest
 # month in the file and warns about the one after it. One is tolerable, since
@@ -61,7 +70,7 @@ MONTH_RE = r"^\d{4}-(0[1-9]|1[0-2])$"
 
 app = FastAPI(
     title="Spike Watch prediction service",
-    version="1.2.0",
+    version="1.3.0",
     description=(
         "Monthly food price spike warnings for Borno, Yobe and Adamawa. "
         "Serves predictions computed ahead of time by the batch job."
@@ -215,7 +224,8 @@ def root() -> dict:
         "pattern": "batch prediction: precomputed monthly, served on request",
         "docs": "/docs",
         "endpoints": ["/health", "/warnings", "/warnings/{month}",
-                      "/months", "/performance"],
+                      "/months", "/performance", "/feed", "/dashboard"],
+        "for people": "/dashboard",
     }
 
 
@@ -296,6 +306,46 @@ def _for_month(data: dict, month: str, k: int, state: Optional[str]) -> dict:
         "freshness": _freshness(data),
         "warnings": rows[:k],
     }
+
+
+@app.get("/feed", summary="Every month at once, for the dashboard")
+def feed() -> dict:
+    """The whole store in one request, with short keys.
+
+    The dashboard draws a bar per month, so it needs every month at once. A
+    request per month would be a dozen round trips for data that changes once
+    a month. Same content as /warnings, named shorter because this one is
+    read by a page rather than by a person.
+
+    `a` is the outcome: 1 if the price rose, 0 if it held, and null when the
+    month has not happened yet. A page must treat null as unknown and not as
+    a miss, or a pending month reads as a failed one.
+    """
+    data = _data()
+    return {
+        "meta": data.get("meta", {}),
+        "freshness": _freshness(data),
+        "pending_for": _pending_for(data),
+        "warnings": [
+            {"s": w.get("state"), "c": w.get("commodity"), "m": w.get("month"),
+             "p": w.get("score"), "r": w.get("reasons", []),
+             "a": w.get("actual"), "status": w.get("status"),
+             "predicts": w.get("predicts"),
+             "pairs_this_month": w.get("pairs_this_month")}
+            for w in data["warnings"]
+        ],
+    }
+
+
+@app.get("/dashboard", response_class=HTMLResponse,
+         summary="The page a person actually looks at")
+def dashboard() -> HTMLResponse:
+    """The dashboard, served from the same origin as the data it reads."""
+    if not DASHBOARD.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"no dashboard at {DASHBOARD}. Set DASHBOARD_PATH.")
+    return HTMLResponse(DASHBOARD.read_text(encoding="utf-8"))
 
 
 @app.get("/performance", summary="How well the shortlist has done")
