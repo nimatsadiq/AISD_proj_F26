@@ -397,18 +397,17 @@ help, which is why it is worth keeping.
 ```
 .
 ├── README.md
-├── requirements.txt
-├── .gitignore
+├── DEPLOY.md                        <- AWS deployment walkthrough
+├── requirements.txt                 <- full pipeline
+├── Dockerfile                       <- serving image: no model, no sklearn, no pandas
+├── .github/workflows/
+│   └── monthly-warnings.yml         <- monthly: fetch, refit, rescore, audit, commit
 ├── data/
-│   ├── raw/                         <- source file lands here (untracked)
-│   └── processed/                   <- panel, diagnostics, results (untracked)
-├── docs/
-│   ├── 01_preprocessing_strategy.pdf   design rationale, written before build
-│   ├── 02_implementation_audit.pdf     what execution changed, and why
-│   ├── 03_technical_report.pdf         empirical audit with full statistics
-│   └── 04_review_response.pdf          response to external review
-├── notebooks/
-│   └── pipeline_execution.ipynb     <- runs end to end from the raw file
+│   ├── raw/
+│   │   ├── wfp_food_prices_nga.csv  <- committed, so a fresh clone runs offline
+│   │   └── SOURCE.md                <- date, size and SHA-256 of that exact file
+│   └── processed/                   <- every result below, committed
+├── figures/                         <- 19 diagnostic plots, 300 DPI
 ├── src/
 │   ├── transformers.py              <- custom scikit-learn transformers
 │   ├── pipeline_builder.py          <- ColumnTransformer + Pipelines
@@ -416,14 +415,22 @@ help, which is why it is worth keeping.
 │   ├── run_diagnostics.py           <- regenerates every reported statistic
 │   ├── model_selection.py           <- model and scope comparison experiments
 │   ├── explain.py                   <- SHAP attribution and plain-language reasons
-│   ├── rolling.py                   <- walk-forward retraining and evaluation
-│   ├── make_warnings.py             <- builds the dashboard's warning feed
 │   ├── calibration.py               <- post-hoc probability calibration
+│   ├── rolling.py                   <- walk-forward retraining and evaluation
+│   ├── uncertainty.py               <- month-clustered confidence intervals
+│   ├── ablation.py                  <- what each feature group is worth
+│   ├── stress.py                    <- fault injection: how it fails
+│   ├── make_warnings.py             <- the warning feed, including next month
 │   ├── figures.py                   <- pipeline diagnostic plots
 │   └── eda_figures.py               <- descriptive plots
-├── app.py                           <- Streamlit warning dashboard
-├── dashboard.html                   <- static dashboard, no install needed
-└── figures/                         <- all figures, 300 DPI
+├── serve/
+│   ├── main.py                      <- FastAPI serving layer, reads the feed
+│   ├── bench.py                     <- latency benchmark
+│   └── requirements.txt             <- three packages, for the container only
+├── app.py                           <- Streamlit dashboard
+├── dashboard.html                   <- static dashboard, served at /dashboard
+├── phase1_strategy/                 <- strategy report
+└── phase2_implementation/           <- final report, technical report, notebook
 ```
 
 ## Reproduction
@@ -431,13 +438,37 @@ help, which is why it is worth keeping.
 ```bash
 git clone https://github.com/nimatsadiq/AISD_proj_F26.git
 cd AISD_proj_F26
+python -m venv .venv
+source .venv/bin/activate            # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-jupyter notebook notebooks/pipeline_execution.ipynb
 ```
 
-On Colab, uncomment the clone and install lines in the first cell. The data
-cell fetches the raw file from HDX if `data/raw/` is empty, so no manual
-download is needed. No GPU is required: the data is tabular and fits in memory.
+The raw price file is committed, so **nothing is downloaded and the run is
+deterministic**. Every `random_state` in the codebase is 42. Running the same
+commands on the same clone produces byte-identical outputs.
+
+Each step writes to `data/processed/` and can be run independently:
+
+```bash
+python -m src.run_diagnostics    # every statistic in the technical report
+python -m src.model_selection    # the model and scope comparison tables
+python -m src.uncertainty        # walk-forward + month-clustered intervals
+python -m src.make_warnings      # the warning feed, including next month's
+python -m src.ablation           # what each feature group is worth
+python -m src.stress             # how the system fails on corrupted input
+```
+
+About fifteen minutes end to end on a laptop. No GPU: the data is tabular and
+fits in memory. The same sequence runs monthly and unattended in
+`.github/workflows/monthly-warnings.yml`, which also re-fetches the source
+file from HDX first, so the committed results are never stale by more than a
+month.
+
+The notebook walks the same pipeline interactively:
+
+```bash
+jupyter notebook phase2_implementation/notebooks/pipeline_execution.ipynb
+```
 
 ## Pipeline Summary
 
@@ -457,10 +488,11 @@ download is needed. No GPU is required: the data is tabular and fits in memory.
 
 | Document | Covers |
 |---|---|
-| [Preprocessing strategy](docs/01_preprocessing_strategy.pdf) | Data audit, missingness mechanisms, imputation and outlier rules, encoding, split design and leakage architecture. Written before implementation. |
-| [Implementation audit](docs/02_implementation_audit.pdf) | Decision log of what execution changed against the plan, with rationale. |
-| [Technical report](docs/03_technical_report.pdf) | Full empirical audit: Little's MCAR test, Cramer's V, VIF, skewness, PCA variance, leakage verification. |
-| [Review response](docs/04_review_response.pdf) | Response to external review, including probability calibration. |
+| [Phase 1 strategy](phase1_strategy/Phase1_Strategy_Report.pdf) | Data audit, missingness mechanisms, imputation and outlier rules, encoding, split design and leakage architecture. Written before implementation. |
+| [Phase 2 final report](phase2_implementation/Phase2_Final_Report.pdf) | What execution changed against the plan, with rationale. |
+| [Technical report](phase2_implementation/Technical_Report.pdf) | Full empirical audit: Little's MCAR test, Cramer's V, VIF, skewness, PCA variance, leakage verification. |
+| [Review response](phase2_implementation/Feedback_Response.pdf) | Response to external review, including probability calibration. |
+| [Deployment](DEPLOY.md) | AWS EC2 walkthrough, container, costs, security group. |
 
 Every statistic cited in the technical report is regenerated by:
 
@@ -518,10 +550,6 @@ tested instead, and the result is above.
 
 ## Results
 
-
-
-## Results
-
 | Model | Threshold | Recall | Precision | PR-AUC | ROC-AUC | Precision@50 |
 |---|---|---|---|---|---|---|
 | Logistic regression | 0.37 | **0.835** | 0.194 | 0.353 | 0.737 | 0.480 |
@@ -551,8 +579,36 @@ python -m src.make_warnings   # builds the feed both versions read
 streamlit run app.py          # interactive version
 ```
 
-`dashboard.html` is a standalone copy that opens in any browser with nothing
-installed. Both show, for a chosen month, the highest-risk state-and-commodity
+### Live service
+
+A containerised FastAPI service runs on AWS EC2 and serves the feed:
+
+| | |
+|---|---|
+| Dashboard | http://56.228.75.61/dashboard |
+| API docs | http://56.228.75.61/docs |
+| Health | http://56.228.75.61/health |
+
+`/health` reports how many months behind the data is and which month is
+currently being warned about. `/warnings` returns the shortlist for the
+newest month, with `predicts` naming the month it is about and `outcome_known`
+false while that month is still running. Past months stay readable at
+`/warnings/{month}` with their outcomes, as the evidence behind the pending
+one. Input is validated by Pydantic: a malformed month returns 422.
+
+The container holds no model, no scikit-learn and no training data. It reads a
+JSON file of precomputed answers, which is why it builds in twelve seconds and
+why a change in a modelling library cannot break the live service. Training
+happens in GitHub Actions, on a schedule. Deployment steps are in
+[DEPLOY.md](DEPLOY.md).
+
+The dashboard is served from the same origin as the API, deliberately: a page
+served over HTTPS may not call an HTTP service, so hosting it anywhere else
+would stop it reading the data at all.
+
+`dashboard.html` also opens directly in any browser with nothing installed,
+falling back to a committed snapshot when it cannot reach the service, and
+saying on screen which of the two it is showing. Both show, for a chosen month, the highest-risk state-and-commodity
 pairs, each with the factors that produced the warning, plus the historical hit
 rate of the list.
 
@@ -690,6 +746,77 @@ in mind.
 python -m src.uncertainty   # regenerates all of the above
 ```
 
+## Robustness: what each feature is worth, and how it breaks
+
+Two audits, both rerun every month by the workflow so they describe the
+current system rather than one that existed when a script was last run.
+
+### Ablation
+
+Each group of features removed, the entire walk-forward evaluation rerun from
+scratch. Groups rather than single columns: `mom_1m` and `mom_3m` both
+describe recent movement, so dropping one lets the other cover for it and you
+conclude the feature was worthless when the information was not.
+
+| group removed | PR-AUC | change | top-5 | change |
+|---|---|---|---|---|
+| nothing (full model) | 0.4919 | | 52.2% | |
+| own price history | 0.3161 | **-0.176** | 36.1% | **-16.1** |
+| seasonality | 0.4833 | -0.009 | 51.3% | -0.9 |
+| neighbouring states | 0.4878 | -0.004 | 51.7% | -0.4 |
+| fuel cost | 0.4885 | -0.003 | 50.9% | -1.3 |
+| volatility | 0.4901 | -0.002 | 55.6% | +3.5 |
+| identity (state, food type) | 0.4901 | -0.002 | 51.3% | -0.9 |
+| missingness | 0.4923 | +0.000 | 50.0% | -2.2 |
+
+One group carries the system. Without a food's own price history the shortlist
+falls from 52% to 36%, against a 23% background: most of the value is gone.
+Every other group is worth under 0.01 PR-AUC, and the six of them together
+are worth less than a tenth of what price history alone is worth. That is
+good evidence the feature set is larger than it needs to be, and a useful
+thing to know before extending the system to more states.
+
+Worth noting a contradiction rather than hiding it: SHAP lists fuel momentum
+among the reasons for most current warnings, while the ablation says removing
+fuel costs 0.003. Both are correct. SHAP describes what moved one ranking;
+the ablation describes what the information is worth across all of them. Fuel
+correlates with the momentum features and takes local credit for signal the
+model would have found anyway. It is the same collinearity the VIF protocol
+manages, surfacing in the explanations instead of the coefficients, and a
+caution against reading any single attribution as causal.
+
+The run uses the 48-month training window that production uses, so the
+full-model figure of 0.4919 is the same number the policy comparison above
+reports for the selected policy.
+
+### Stress tests
+
+Each fault corrupts the raw file and rebuilds everything from it, because that
+is where damage actually arrives. The corrupted months have no known outcome,
+so what is measured is stability and detection, not accuracy.
+
+| fault injected | kept of top 5 | top score | detected? |
+|---|---|---|---|
+| one price entered 12x too high | 5 of 5 | unchanged | absorbed by the median |
+| one commodity disappears | 5 of 5 | unchanged | no effect |
+| all prices 20% higher | 4 of 5 | 0.21 to 0.61 | **no** |
+| the feed freezes, month repeats | 2 of 5 | 0.21 to 0.15 | **no** |
+| half the markets stop reporting | 1 of 5 | 0.21 to 0.75 | yes, 72% to 36% |
+
+- **The state median earns its place.** A single price entered twelve times
+  too high changes nothing at all.
+- **Thin input is worse than it looks.** Halving the reporting markets leaves
+  one of five picks standing and raises the top score from 0.21 to 0.75: it
+  rewrites the answer and becomes more confident doing so. This is the one
+  fault the coverage check detects.
+- **A currency move is indistinguishable from scarcity.** Features built on
+  movement relative to a trailing mean cannot separate a 20% devaluation from
+  simultaneous genuine shortage. In June 2023 Nigeria had both.
+- **A frozen feed is invisible.** If the upstream file repeats the previous
+  month, coverage reports 97% and no check fires, while two of five picks
+  change. Nothing currently compares a month against the one before it. That
+  is the next thing worth building.
+
 ## Explainability
 
 A ranked list without reasons is a black box no official has cause to trust, so
@@ -709,7 +836,21 @@ officer can act on, though it stays in the figures as a legitimate model input.
 
 
 Preprocessing, model selection, calibration, SHAP attribution, rolling-window
-retraining and the warning dashboard are complete and reproducible.
+retraining, the ablation and stress audits, the warning dashboard and the
+cloud deployment are complete and reproducible.
+
+The system issues a **forward-looking** warning: it scores the newest month of
+prices and publishes a shortlist for the month after it, with the outcome
+recorded as unknown rather than dropped. Months whose outcome has since
+arrived remain in the feed as the evidence behind it.
+
+The deployed model is **logistic regression**, not the tree ensemble. Extra
+Trees scores about 0.03 higher on PR-AUC, inside the error bars, but SHAP's
+`LinearExplainer` reads a linear model exactly and instantly where a tree needs
+the approximating and far slower `KernelExplainer` for every warning every
+month. The walk-forward evaluation, the calibration and the confidence
+intervals all run through the same `build_logistic_pipeline` that production
+uses, so the reported numbers describe the model that ships.
 
 Known limitations, stated plainly:
 
@@ -724,3 +865,15 @@ Known limitations, stated plainly:
   so it shifts all scores together without helping rank them.
 - The system cannot anticipate policy shocks, because their cause is absent from
   price history.
+- It predicts direction, not magnitude. Historically, when a spike occurs the
+  median rise is 25% above the trailing three-month mean, but the model does
+  not estimate the size of any individual one.
+- WFP stopped publishing Adamawa prices after November 2025. Adamawa remains in
+  the training data and in scope, but no recent month can produce an Adamawa
+  warning. This is a source gap, not a pipeline one.
+- The newest month of any download is partly collected, since WFP surveys
+  through the month. The pipeline measures reporting coverage against the
+  preceding six months and returns a caveat with the shortlist when the month
+  is thin, rather than presenting it as equivalent to a complete one.
+- A frozen upstream feed is not detected. See the stress tests above.
+  
