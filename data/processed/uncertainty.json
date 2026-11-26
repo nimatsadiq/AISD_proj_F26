@@ -1,231 +1,231 @@
 {
- "n_rows": 2169,
- "n_months": 42,
+ "n_rows": 2403,
+ "n_months": 46,
  "n_series": 77,
  "metrics": {
   "pr_auc": {
-   "point": 0.4997,
-   "lo": 0.4298,
-   "hi": 0.5877,
-   "n_months": 42,
+   "point": 0.4919,
+   "lo": 0.4274,
+   "hi": 0.5627,
+   "n_months": 46,
    "n_boot": 2000
   },
   "top3_precision": {
-   "point": 0.6032,
-   "lo": 0.5308,
-   "hi": 0.7222,
-   "n_months": 42,
+   "point": 0.5797,
+   "lo": 0.5119,
+   "hi": 0.7024,
+   "n_months": 46,
    "n_boot": 2000
   },
   "top5_precision": {
-   "point": 0.5333,
-   "lo": 0.4929,
-   "hi": 0.6667,
-   "n_months": 42,
+   "point": 0.5217,
+   "lo": 0.475,
+   "hi": 0.6414,
+   "n_months": 46,
    "n_boot": 2000
   },
   "top8_precision": {
-   "point": 0.4851,
-   "lo": 0.45,
-   "hi": 0.6033,
-   "n_months": 42,
+   "point": 0.4728,
+   "lo": 0.4444,
+   "hi": 0.5862,
+   "n_months": 46,
    "n_boot": 2000
   },
   "base_rate": {
-   "point": 0.2485,
-   "lo": 0.2042,
-   "hi": 0.295,
-   "n_months": 42,
+   "point": 0.2326,
+   "lo": 0.191,
+   "hi": 0.2768,
+   "n_months": 46,
    "n_boot": 2000
   },
   "lift_top5": {
-   "point": 2.1462,
-   "lo": 1.8974,
-   "hi": 2.8477,
-   "n_months": 42,
+   "point": 2.2428,
+   "lo": 1.9414,
+   "hi": 2.9379,
+   "n_months": 46,
    "n_boot": 2000
   }
  },
  "naive_row_bootstrap_top5": {
-  "lo": 0.4619,
-  "hi": 0.5905
+  "lo": 0.4522,
+  "hi": 0.5739
  },
- "ci_width_ratio": 1.35,
+ "ci_width_ratio": 1.37,
  "by_commodity": [
   {
    "commodity": "Oil (palm)",
-   "n": 92,
-   "base_rate": 0.0978,
-   "pr_auc": 0.3961,
-   "lift": 4.05
-  },
-  {
-   "commodity": "Meat (beef)",
-   "n": 85,
-   "base_rate": 0.1647,
-   "pr_auc": 0.5023,
-   "lift": 3.05
+   "n": 101,
+   "base_rate": 0.1089,
+   "pr_auc": 0.4228,
+   "lift": 3.88
   },
   {
    "commodity": "Groundnuts",
-   "n": 85,
-   "base_rate": 0.1882,
-   "pr_auc": 0.5619,
-   "lift": 2.99
+   "n": 94,
+   "base_rate": 0.1702,
+   "pr_auc": 0.6395,
+   "lift": 3.76
+  },
+  {
+   "commodity": "Meat (beef)",
+   "n": 94,
+   "base_rate": 0.1489,
+   "pr_auc": 0.4891,
+   "lift": 3.28
   },
   {
    "commodity": "Milk (powder)",
-   "n": 85,
-   "base_rate": 0.2,
-   "pr_auc": 0.5585,
-   "lift": 2.79
+   "n": 94,
+   "base_rate": 0.1809,
+   "pr_auc": 0.5901,
+   "lift": 3.26
   },
   {
    "commodity": "Meat (goat)",
-   "n": 85,
-   "base_rate": 0.2,
-   "pr_auc": 0.4874,
-   "lift": 2.44
-  },
-  {
-   "commodity": "Oil (vegetable)",
-   "n": 85,
-   "base_rate": 0.1529,
-   "pr_auc": 0.3645,
-   "lift": 2.38
-  },
-  {
-   "commodity": "Sorghum",
-   "n": 85,
-   "base_rate": 0.2706,
-   "pr_auc": 0.6447,
-   "lift": 2.38
-  },
-  {
-   "commodity": "Millet",
-   "n": 92,
-   "base_rate": 0.2935,
-   "pr_auc": 0.6759,
-   "lift": 2.3
-  },
-  {
-   "commodity": "Beans (red)",
-   "n": 85,
-   "base_rate": 0.3412,
-   "pr_auc": 0.7609,
-   "lift": 2.23
+   "n": 94,
+   "base_rate": 0.1702,
+   "pr_auc": 0.4523,
+   "lift": 2.66
   },
   {
    "commodity": "Eggs",
-   "n": 85,
-   "base_rate": 0.1647,
-   "pr_auc": 0.3647,
-   "lift": 2.21
+   "n": 94,
+   "base_rate": 0.1383,
+   "pr_auc": 0.3642,
+   "lift": 2.63
+  },
+  {
+   "commodity": "Millet",
+   "n": 101,
+   "base_rate": 0.2673,
+   "pr_auc": 0.6613,
+   "lift": 2.47
   },
   {
    "commodity": "Beans (white)",
-   "n": 85,
-   "base_rate": 0.3412,
-   "pr_auc": 0.7309,
-   "lift": 2.14
+   "n": 94,
+   "base_rate": 0.3085,
+   "pr_auc": 0.7576,
+   "lift": 2.46
+  },
+  {
+   "commodity": "Sorghum",
+   "n": 94,
+   "base_rate": 0.2553,
+   "pr_auc": 0.6153,
+   "lift": 2.41
+  },
+  {
+   "commodity": "Beans (red)",
+   "n": 94,
+   "base_rate": 0.3191,
+   "pr_auc": 0.7637,
+   "lift": 2.39
   },
   {
    "commodity": "Maize flour",
-   "n": 85,
-   "base_rate": 0.3059,
-   "pr_auc": 0.6091,
-   "lift": 1.99
+   "n": 94,
+   "base_rate": 0.266,
+   "pr_auc": 0.6248,
+   "lift": 2.35
   },
   {
-   "commodity": "Yam",
-   "n": 92,
-   "base_rate": 0.2826,
-   "pr_auc": 0.557,
-   "lift": 1.97
-  },
-  {
-   "commodity": "Bananas",
-   "n": 85,
-   "base_rate": 0.3059,
-   "pr_auc": 0.5911,
-   "lift": 1.93
-  },
-  {
-   "commodity": "Rice (imported)",
-   "n": 92,
-   "base_rate": 0.2283,
-   "pr_auc": 0.4396,
-   "lift": 1.93
-  },
-  {
-   "commodity": "Watermelons",
-   "n": 85,
-   "base_rate": 0.2706,
-   "pr_auc": 0.5055,
-   "lift": 1.87
-  },
-  {
-   "commodity": "Sugar",
-   "n": 85,
-   "base_rate": 0.2471,
-   "pr_auc": 0.4583,
-   "lift": 1.86
-  },
-  {
-   "commodity": "Oranges",
-   "n": 85,
-   "base_rate": 0.2353,
-   "pr_auc": 0.4362,
-   "lift": 1.85
-  },
-  {
-   "commodity": "Rice (local)",
-   "n": 92,
-   "base_rate": 0.1848,
-   "pr_auc": 0.3298,
-   "lift": 1.78
+   "commodity": "Oil (vegetable)",
+   "n": 94,
+   "base_rate": 0.1809,
+   "pr_auc": 0.4157,
+   "lift": 2.3
   },
   {
    "commodity": "Cowpeas",
-   "n": 85,
-   "base_rate": 0.2588,
-   "pr_auc": 0.4527,
-   "lift": 1.75
+   "n": 94,
+   "base_rate": 0.2234,
+   "pr_auc": 0.4928,
+   "lift": 2.21
   },
   {
-   "commodity": "Onions",
-   "n": 85,
-   "base_rate": 0.3765,
-   "pr_auc": 0.6487,
-   "lift": 1.72
+   "commodity": "Rice (imported)",
+   "n": 101,
+   "base_rate": 0.2079,
+   "pr_auc": 0.4338,
+   "lift": 2.09
   },
   {
-   "commodity": "Spinach",
-   "n": 85,
-   "base_rate": 0.2706,
-   "pr_auc": 0.4573,
-   "lift": 1.69
+   "commodity": "Yam",
+   "n": 101,
+   "base_rate": 0.2673,
+   "pr_auc": 0.5497,
+   "lift": 2.06
+  },
+  {
+   "commodity": "Watermelons",
+   "n": 94,
+   "base_rate": 0.2447,
+   "pr_auc": 0.4798,
+   "lift": 1.96
   },
   {
    "commodity": "Salt",
-   "n": 85,
-   "base_rate": 0.1882,
-   "pr_auc": 0.3182,
-   "lift": 1.69
+   "n": 94,
+   "base_rate": 0.1596,
+   "pr_auc": 0.3067,
+   "lift": 1.92
+  },
+  {
+   "commodity": "Oranges",
+   "n": 94,
+   "base_rate": 0.2234,
+   "pr_auc": 0.4255,
+   "lift": 1.9
+  },
+  {
+   "commodity": "Bananas",
+   "n": 94,
+   "base_rate": 0.2872,
+   "pr_auc": 0.5415,
+   "lift": 1.89
   },
   {
    "commodity": "Tomatoes",
-   "n": 85,
-   "base_rate": 0.3647,
-   "pr_auc": 0.5851,
-   "lift": 1.6
+   "n": 94,
+   "base_rate": 0.3298,
+   "pr_auc": 0.5976,
+   "lift": 1.81
+  },
+  {
+   "commodity": "Rice (local)",
+   "n": 101,
+   "base_rate": 0.1683,
+   "pr_auc": 0.2983,
+   "lift": 1.77
+  },
+  {
+   "commodity": "Spinach",
+   "n": 94,
+   "base_rate": 0.2447,
+   "pr_auc": 0.4138,
+   "lift": 1.69
   },
   {
    "commodity": "Fish",
-   "n": 85,
-   "base_rate": 0.3176,
-   "pr_auc": 0.4988,
-   "lift": 1.57
+   "n": 94,
+   "base_rate": 0.2872,
+   "pr_auc": 0.4838,
+   "lift": 1.68
+  },
+  {
+   "commodity": "Onions",
+   "n": 94,
+   "base_rate": 0.4043,
+   "pr_auc": 0.6625,
+   "lift": 1.64
+  },
+  {
+   "commodity": "Sugar",
+   "n": 94,
+   "base_rate": 0.3085,
+   "pr_auc": 0.5054,
+   "lift": 1.64
   }
  ],
  "by_state": [
@@ -233,22 +233,22 @@
    "state": "Adamawa",
    "n": 205,
    "base_rate": 0.2293,
-   "pr_auc": 0.5539,
-   "lift": 2.42
+   "pr_auc": 0.548,
+   "lift": 2.39
   },
   {
    "state": "Yobe",
-   "n": 969,
-   "base_rate": 0.2436,
-   "pr_auc": 0.5038,
-   "lift": 2.07
+   "n": 1099,
+   "base_rate": 0.2257,
+   "pr_auc": 0.4998,
+   "lift": 2.21
   },
   {
    "state": "Borno",
-   "n": 995,
-   "base_rate": 0.2573,
-   "pr_auc": 0.4905,
-   "lift": 1.91
+   "n": 1099,
+   "base_rate": 0.2402,
+   "pr_auc": 0.4817,
+   "lift": 2.01
   }
  ]
 }
